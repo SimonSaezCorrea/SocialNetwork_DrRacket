@@ -1,0 +1,3 @@
+#lang racket
+; Cuenta -> nombre | contrasena | fecha creacion | actividad | follows
+;           String | String | Date | Boolean | Integer
