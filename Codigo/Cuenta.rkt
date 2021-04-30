@@ -1,12 +1,15 @@
 #lang racket
+
+(require "date.rkt")
+
 #|
-Cuenta -> nombre | contrasena | fecha creacion | actividad | follows
-          String | String | Date | Boolean | Integer
+Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
+          String | String | Date | Boolean | Integer | Integer
 |#
 
 ;Constructor
-(define (cuenta nombre contrasena fecha actividad follow)
-  (list nombre contrasena fecha actividad follow))
+(define (account nombre contrasena fecha actividad follow ID)
+  (list nombre contrasena fecha actividad follow ID))
 
 ;Selector
 
@@ -25,16 +28,21 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows
 (define (getFollow_C cuenta)
   (car (cdr (cdr (cdr (cdr cuenta))))))
 
+(define (getID_C cuenta)
+  (car (cdr (cdr (cdr (cdr (cdr cuenta)))))))
+
 
 ;Pertenencia
 
-(define (cuenta? cuenta)
+(define (account? cuenta)
   (if (string? (getNombre_C cuenta))
       (if (string? (getContrasena_C cuenta))
-          (if (date? (getFecha_C cuenta))
+          (if (day? (getFecha_C cuenta))
               (if (boolean? (getActividad_C cuenta))
                   (if (integer? (getFollow_C cuenta))
-                      #t
+                      (if (integer? (getID_C cuenta))
+                          #t
+                          #f)
                       #f)
                   #f)
               #f)
@@ -45,15 +53,15 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows
 ;Modificadores
 
 (define (setActividad cuenta actividad)
-  (if (cuenta? cuenta)
+  (if (account? cuenta)
       (if (boolean? actividad)
-          (list (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) actividad (getFollow_C cuenta))
+          (account (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) actividad (getFollow_C cuenta) (getID_C cuenta))
           null)
       null))
 
 (define (setFollow cuenta follow)
-  (if (cuenta? cuenta)
+  (if (account? cuenta)
       (if (integer? follow)
-          (list (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) (getActividad_C cuenta) follow)
+          (account (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) (getActividad_C cuenta) follow (getID_C cuenta))
           null)
       null))
