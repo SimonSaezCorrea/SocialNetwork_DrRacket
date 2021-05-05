@@ -2,6 +2,11 @@
 
 (require "date.rkt")
 
+(provide account)
+(provide account?)
+(provide setActividad)
+(provide setFollow)
+
 #|
 Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
           String | String | Date | Boolean | Integer | Integer
@@ -9,7 +14,14 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
 
 ;Constructor
 (define (account nombre contrasena fecha actividad follow ID)
-  (list nombre contrasena fecha actividad follow ID))
+  (if (and (string? nombre)
+           (string? contrasena)
+           (day? fecha)
+           (boolean? actividad)
+           (integer? follow)
+           (integer? ID))
+      (list nombre contrasena fecha actividad follow ID)
+      null))
 
 ;Selector
 

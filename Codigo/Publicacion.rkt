@@ -2,6 +2,11 @@
 
 (require "date.rkt")
 
+(provide post)
+(provide post?)
+(provide setCompartir)
+(provide )
+
 #|
 Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion |
                Cantidad compartir | ID
@@ -37,7 +42,7 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
 
 ;Pertenencia
 
-(define (publicacion? publicacion)
+(define (post? publicacion)
   (if (string? (getAutor_P publicacion))
       (if (date? (getFecha_P publicacion))
           (if (string? (getTipo_P publicacion))
@@ -61,7 +66,7 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
 ; Modificador
 
 (define (setCompartir publicacion cantidad)
-  (if (publicacion? publicacion)
+  (if (post? publicacion)
       (post (getAutor_P publicacion) (getFecha_P publicacion) (getTipo_P publicacion)
             (getContenido_P publicacion) cantidad (getID_P publicacion))
       null))
