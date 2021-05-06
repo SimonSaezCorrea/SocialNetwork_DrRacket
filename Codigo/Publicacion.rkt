@@ -69,4 +69,4 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
   (if (post? publicacion)
       (post (getAutor_P publicacion) (getFecha_P publicacion) (getTipo_P publicacion)
             (getContenido_P publicacion) cantidad (getID_P publicacion))
-      null))
+      publicacion))

@@ -12,7 +12,16 @@ Date -> dia | mes | ano
 ;Construcor
 
 (define (day dia mes ano)
-  (list dia mes ano))
+  (if (and (integer? dia)
+           (< 0 dia)
+           (> 32 dia)
+           (integer? mes)
+           (< 0 mes)
+           (> 13 mes)
+           (integer? ano)
+           (< 0 ano))
+      (list dia mes ano)
+      null))
 
 
 ;Selectores

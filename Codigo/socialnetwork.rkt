@@ -1,0 +1,123 @@
+#lang racket
+
+(require "date.rkt")
+(require "Cuenta.rkt")
+(require "Publicacion.rkt")
+
+
+(provide socialnetwork)
+
+(provide getCuenta_SN)
+(provide getPublicaciones_SN)
+
+(provide Cuentas?)
+(provide Publicaciones?)
+(provide socialnetwork?)
+
+(provide addCuenta_SN)
+(provide addPublicacion_SN)
+(provide contadorCuentas)
+(provide contadorPublicaciones)
+
+;Constructor
+
+(define (socialnetwork name date encryptFunction decryptFunction)
+  (if (and (string? name)
+           (day? date))
+      (list name date encryptFunction decryptFunction (list) (list))
+      null))
+
+;Selectores
+
+(define (getName_SN SN)
+  (car SN))
+
+(define (getDate_SN SN)
+  (car (cdr SN)))
+
+(define (getEncryptFunction_SN SN)
+  (car (cdr (cdr SN))))
+
+(define (getDecryptFunction_SN SN)
+  (car (cdr (cdr (cdr SN)))))
+
+(define (getCuenta_SN SN)
+  (car (cdr (cdr (cdr (cdr SN))))))
+
+(define (getPublicaciones_SN SN)
+  (car (cdr (cdr (cdr (cdr (cdr SN)))))))
+
+;Pertenencia
+
+(define (Cuentas? Cuentas_SN)
+  (if (not(null? Cuentas_SN))
+      (if (account? (car Cuentas_SN))
+          (Cuentas? (cdr Cuentas_SN))
+          #f)
+      #t))
+(define (Publicaciones? Publicaciones_SN)
+  (if (not(null? Publicaciones_SN))
+      (if (post? (car Publicaciones_SN))
+          (Publicaciones? (cdr Publicaciones_SN))
+          #f)
+      #t))
+      
+
+(define (socialnetwork? SN)
+  (if (and (string? (getName_SN SN))
+           (day? (getDate_SN SN))
+           (Cuentas? (getCuenta_SN SN))
+           (Publicaciones? (getPublicaciones_SN SN)))
+      #t
+      #f))
+
+;Modificador
+
+(define (addCuenta_SN SN cuenta)
+  (if(and(socialnetwork? SN)
+         (account? cuenta))
+     (list (getName_SN SN)
+                    (getDate_SN SN)
+                    (getEncryptFunction_SN SN)
+                    (getDecryptFunction_SN SN)
+                    (addCuenta (getCuenta_SN SN) cuenta)
+                    (getPublicaciones_SN SN))
+     SN))
+(define (addCuenta Cuentas cuenta)
+  (if (not(null? Cuentas))
+      (cons (car Cuentas) (addCuenta (cdr Cuentas) cuenta))
+      (cons cuenta null)))
+
+
+(define (addPublicacion_SN SN publicacion)
+  (if(and(socialnetwork? SN)
+         (post? publicacion))
+     (list (getName_SN SN)
+                    (getDate_SN SN)
+                    (getEncryptFunction_SN SN)
+                    (getDecryptFunction_SN SN)
+                    (getCuenta_SN SN)
+                    (addPublicacion (getPublicaciones_SN SN) publicacion))
+     SN))
+(define (addPublicacion Publicaciones publicacion)
+  (if (not(null? Publicaciones))
+      (cons (car Publicaciones) (addPublicacion (cdr Publicaciones) publicacion))
+      (cons publicacion null)))
+
+;Otras funciones
+
+(define (contadorCuentas Cuentas contador)
+  (if (and (Cuentas? Cuentas)
+           (integer? contador))
+      (if (not (null? Cuentas))
+          (contadorCuentas (cdr Cuentas) (+ contador 1))
+          contador)
+      null))
+
+(define (contadorPublicaciones Publicaciones contador)
+  (if (and (Publicaciones? Publicaciones)
+           (integer? contador))
+      (if (not (null? Publicaciones))
+          (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
+          contador)
+      null))
