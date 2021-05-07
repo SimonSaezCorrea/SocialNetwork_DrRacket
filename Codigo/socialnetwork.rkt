@@ -18,6 +18,8 @@
 (provide addPublicacion_SN)
 (provide contadorCuentas)
 (provide contadorPublicaciones)
+(provide activar)
+;(provide desactivar)
 
 ;Constructor
 
@@ -121,3 +123,32 @@
           (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
           contador)
       null))
+
+(define (buscarCuenta_activar listCuenta cuenta password)
+  (if (and (string? cuenta)
+           (string? password)
+           (Cuentas? listCuenta)
+           (not (null? listCuenta)))
+      (if (and (eqv? (getNombre_C (car listCuenta)) cuenta)
+               (eqv? (getContrasena_C (car listCuenta)) password))
+          (cons (account (getNombre_C (car listCuenta))
+                      (getContrasena_C (car listCuenta))
+                      (getFecha_C (car listCuenta))
+                      #t
+                      (getFollow_C (car listCuenta))
+                      (getID_C (car listCuenta)))
+                (buscarCuenta_activar (cdr listCuenta) cuenta password))
+          (cons (car listCuenta) (buscarCuenta_activar (cdr listCuenta) cuenta password)))
+      null))
+
+(define (activar SN cuenta password)
+  (if (and (string? cuenta)
+           (string? password)
+           (socialnetwork? SN))
+      (if (not (null? (buscarCuenta_activar (getCuenta_SN SN) cuenta password)))
+          (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
+                (buscarCuenta_activar (getCuenta_SN SN) cuenta password)
+                (getPublicaciones_SN SN))
+          SN)
+      SN))
+      

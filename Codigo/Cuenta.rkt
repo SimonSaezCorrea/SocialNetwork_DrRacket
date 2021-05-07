@@ -2,6 +2,13 @@
 
 (require "date.rkt")
 
+(provide getNombre_C)
+(provide getContrasena_C)
+(provide getFecha_C)
+(provide getActividad_C)
+(provide getFollow_C)
+(provide getID_C)
+
 (provide account)
 (provide account?)
 (provide setActividad)
