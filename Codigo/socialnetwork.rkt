@@ -20,7 +20,7 @@
 (provide contadorCuentas)
 (provide activar)
 (provide buscarCuentaActiva)
-;(provide desactivar)
+(provide desactivar)
 
 ;Constructor
 
@@ -115,6 +115,30 @@
       (if (not (null? (buscarCuenta_activar (getCuenta_SN SN) cuenta password)))
           (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
                 (buscarCuenta_activar (getCuenta_SN SN) cuenta password))
+          SN)
+      SN))
+
+(define (buscarCuenta_desactivar listCuenta)
+  (if (and (Cuentas? listCuenta)
+           (not (null? listCuenta)))
+      (if (eqv? (getNombre_C (car listCuenta)) #t)
+          (cons (account (getNombre_C (car listCuenta))
+                      (getContrasena_C (car listCuenta))
+                      (getFecha_C (car listCuenta))
+                      #f
+                      (getFollow_C (car listCuenta))
+                      (getListFollow_C (car listCuenta))
+                      (getID_C (car listCuenta))
+                      (getListPublicaciones_C (car listCuenta)))
+                (buscarCuenta_desactivar (cdr listCuenta)))
+          (cons (car listCuenta) (buscarCuenta_desactivar (cdr listCuenta))))
+      null))
+
+(define (desactivar SN)
+  (if (and (socialnetwork? SN))
+      (if (not (null? (buscarCuenta_desactivar (getCuenta_SN SN))))
+          (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
+                (buscarCuenta_desactivar (getCuenta_SN SN)))
           SN)
       SN))
 

@@ -143,7 +143,7 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_foll
      cuenta))
 (define (addPublicacion_encaps Publicaciones publicacion)
   (if (not(null? Publicaciones))
-      (cons (car Publicaciones) (addPublicacion (cdr Publicaciones) publicacion))
+      (cons (car Publicaciones) (addPublicacion_encaps (cdr Publicaciones) publicacion))
       (cons publicacion null)))
 
 

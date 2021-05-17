@@ -17,7 +17,7 @@
 #|
 Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion |
                Cantidad compartir | ID
-               cuenta | Date | String | String | Integer | Integer
+               String | Date | String | String | Integer | Integer
 
 |#
 
@@ -25,7 +25,8 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
 ;Constructor
 
 (define (posting autor fecha tipo contenido compartir ID)
-  (if (and (day? fecha)
+  (if (and (string? autor)
+           (day? fecha)
            (string? contenido)
            (integer? compartir)
            (integer? ID))
@@ -56,18 +57,17 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
 ;Pertenencia
 
 (define (post? publicacion)
-  (if (and (day? (getFecha_P publicacion))
-           (string?(getTipo_P publicacion))
-           ;(or (eqv? (getTipo_P publicacion) "photo")
-           ;    (eqv? (getTipo_P publicacion) "video")
-           ;    (eqv? (getTipo_P publicacion) "url")
-           ;    (eqv? (getTipo_P publicacion) "text")
-           ;    (eqv? (getTipo_P publicacion) "audio"))
-           (string? (getContenido_P publicacion))
-           (integer? (getCompartir_P publicacion))
-           (integer? (getID_P publicacion)))
-      #t
-      #f))
+  (and (string? (getAutor_P publicacion))
+       (day? (getFecha_P publicacion))
+       (string?(getTipo_P publicacion))
+       (or (equal? (getTipo_P publicacion) "photo")
+           (equal? (getTipo_P publicacion) "video")
+           (equal? (getTipo_P publicacion) "url")
+           (equal? (getTipo_P publicacion) "text")
+           (equal? (getTipo_P publicacion) "audio"))
+       (string? (getContenido_P publicacion))
+       (integer? (getCompartir_P publicacion))
+       (integer? (getID_P publicacion))))
 
 ; Modificador
 
