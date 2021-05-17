@@ -8,17 +8,18 @@
 (provide socialnetwork)
 
 (provide getCuenta_SN)
-(provide getPublicaciones_SN)
+(provide getEncryptFunction_SN)
+(provide getDecryptFunction_SN)
+(provide getDate_SN)
+(provide getName_SN)
 
 (provide Cuentas?)
-(provide Publicaciones?)
 (provide socialnetwork?)
 
 (provide addCuenta_SN)
-(provide addPublicacion_SN)
 (provide contadorCuentas)
-(provide contadorPublicaciones)
 (provide activar)
+(provide buscarCuentaActiva)
 ;(provide desactivar)
 
 ;Constructor
@@ -26,7 +27,7 @@
 (define (socialnetwork name date encryptFunction decryptFunction)
   (if (and (string? name)
            (day? date))
-      (list name date encryptFunction decryptFunction (list) (list))
+      (list name date encryptFunction decryptFunction (list))
       null))
 
 ;Selectores
@@ -46,9 +47,6 @@
 (define (getCuenta_SN SN)
   (car (cdr (cdr (cdr (cdr SN))))))
 
-(define (getPublicaciones_SN SN)
-  (car (cdr (cdr (cdr (cdr (cdr SN)))))))
-
 ;Pertenencia
 
 (define (Cuentas? Cuentas_SN)
@@ -57,19 +55,11 @@
           (Cuentas? (cdr Cuentas_SN))
           #f)
       #t))
-(define (Publicaciones? Publicaciones_SN)
-  (if (not(null? Publicaciones_SN))
-      (if (post? (car Publicaciones_SN))
-          (Publicaciones? (cdr Publicaciones_SN))
-          #f)
-      #t))
-      
 
 (define (socialnetwork? SN)
   (if (and (string? (getName_SN SN))
            (day? (getDate_SN SN))
-           (Cuentas? (getCuenta_SN SN))
-           (Publicaciones? (getPublicaciones_SN SN)))
+           (Cuentas? (getCuenta_SN SN)))
       #t
       #f))
 
@@ -82,29 +72,12 @@
                     (getDate_SN SN)
                     (getEncryptFunction_SN SN)
                     (getDecryptFunction_SN SN)
-                    (addCuenta (getCuenta_SN SN) cuenta)
-                    (getPublicaciones_SN SN))
+                    (addCuenta (getCuenta_SN SN) cuenta))
      SN))
 (define (addCuenta Cuentas cuenta)
   (if (not(null? Cuentas))
       (cons (car Cuentas) (addCuenta (cdr Cuentas) cuenta))
       (cons cuenta null)))
-
-
-(define (addPublicacion_SN SN publicacion)
-  (if(and(socialnetwork? SN)
-         (post? publicacion))
-     (list (getName_SN SN)
-                    (getDate_SN SN)
-                    (getEncryptFunction_SN SN)
-                    (getDecryptFunction_SN SN)
-                    (getCuenta_SN SN)
-                    (addPublicacion (getPublicaciones_SN SN) publicacion))
-     SN))
-(define (addPublicacion Publicaciones publicacion)
-  (if (not(null? Publicaciones))
-      (cons (car Publicaciones) (addPublicacion (cdr Publicaciones) publicacion))
-      (cons publicacion null)))
 
 ;Otras funciones
 
@@ -113,14 +86,6 @@
            (integer? contador))
       (if (not (null? Cuentas))
           (contadorCuentas (cdr Cuentas) (+ contador 1))
-          contador)
-      null))
-
-(define (contadorPublicaciones Publicaciones contador)
-  (if (and (Publicaciones? Publicaciones)
-           (integer? contador))
-      (if (not (null? Publicaciones))
-          (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
           contador)
       null))
 
@@ -136,7 +101,9 @@
                       (getFecha_C (car listCuenta))
                       #t
                       (getFollow_C (car listCuenta))
-                      (getID_C (car listCuenta)))
+                      (getListFollow_C (car listCuenta))
+                      (getID_C (car listCuenta))
+                      (getListPublicaciones_C (car listCuenta)))
                 (buscarCuenta_activar (cdr listCuenta) cuenta password))
           (cons (car listCuenta) (buscarCuenta_activar (cdr listCuenta) cuenta password)))
       null))
@@ -147,8 +114,18 @@
            (socialnetwork? SN))
       (if (not (null? (buscarCuenta_activar (getCuenta_SN SN) cuenta password)))
           (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
-                (buscarCuenta_activar (getCuenta_SN SN) cuenta password)
-                (getPublicaciones_SN SN))
+                (buscarCuenta_activar (getCuenta_SN SN) cuenta password))
           SN)
       SN))
-      
+
+(define (buscarCuentaActiva SN)
+  (if (socialnetwork? SN)
+      (buscarCuentaActiva_encaps (getCuenta_SN SN))
+      null))
+
+(define (buscarCuentaActiva_encaps listCuenta)
+  (if (not (null? listCuenta))
+      (if (eqv? (getActividad_C (car listCuenta)) #t)
+          (car listCuenta)
+          (buscarCuentaActiva_encaps (cdr listCuenta)))
+      null))

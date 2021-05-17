@@ -2,25 +2,32 @@
 
 (require "date.rkt")
 
+(provide getNombre_C)
+(provide getContrasena_C)
+(provide getFecha_C)
+(provide getActividad_C)
+(provide getFollow_C)
+(provide getID_C)
+
 (provide account)
 (provide account?)
 (provide setActividad)
 (provide setFollow)
 
 #|
-Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
-          String | String | Date | Boolean | Integer | Integer
+Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_follows | ID
+          String | String | Date | Boolean | Integer | list account | Integer
 |#
 
 ;Constructor
-(define (account nombre contrasena fecha actividad follow ID)
+(define (account nombre contrasena fecha actividad follow listFollow ID)
   (if (and (string? nombre)
            (string? contrasena)
            (day? fecha)
            (boolean? actividad)
            (integer? follow)
            (integer? ID))
-      (list nombre contrasena fecha actividad follow ID)
+      (list nombre contrasena fecha actividad follow listFollow ID)
       null))
 
 ;Selector
@@ -40,8 +47,11 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
 (define (getFollow_C cuenta)
   (car (cdr (cdr (cdr (cdr cuenta))))))
 
-(define (getID_C cuenta)
+(define (getListFollow_C cuenta)
   (car (cdr (cdr (cdr (cdr (cdr cuenta)))))))
+
+(define (getID_C cuenta)
+  (car (cdr (cdr (cdr (cdr (cdr (cdr cuenta))))))))
 
 
 ;Pertenencia
@@ -68,12 +78,16 @@ Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | ID
   (if (account? cuenta)
       (if (boolean? actividad)
           (account (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) actividad (getFollow_C cuenta) (getID_C cuenta))
-          null)
-      null))
+          cuenta)
+      cuenta))
 
-(define (setFollow cuenta follow)
-  (if (account? cuenta)
-      (if (integer? follow)
-          (account (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) (getActividad_C cuenta) follow (getID_C cuenta))
-          null)
-      null))
+(define (addListFollow cuenta añadirCuenta)
+  (if (and (account? cuenta)
+           (account? añadirCuenta))
+      (account (getNombre_C cuenta) (getContrasena_C cuenta) (getFecha_C cuenta) (getActividad_C cuenta) (+(getFollow_C cuenta) 1) (addListFollow_encaps (getListFollow_C cuenta añadirCuenta)) (getID_C cuenta))
+      cuenta))
+
+(define (addListFollow_encaps listCuenta añadirCuenta)
+  (if (not(null? listCuenta))
+      (cons (car listCuenta) (addListFollow_encaps (cdr listCuenta) añadirCuenta))
+      (cons (car listCuenta) null)))

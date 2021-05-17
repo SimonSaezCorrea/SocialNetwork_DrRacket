@@ -13,5 +13,16 @@
            (string? password)
            (day? date)
            (socialnetwork? socialnetwork))
-      (addCuenta_SN socialnetwork (account username password date #f 0 (contadorCuentas (getCuenta_SN socialnetwork) 1)))
+      (addCuenta_SN socialnetwork (account ((getEncryptFunction_SN socialnetwork) username) password date #f 0 (contadorCuentas (getCuenta_SN socialnetwork) 1)))
       socialnetwork))
+
+
+(define login (lambda (socialnetwork username password operation)(lambda (date . parametro1)(lambda (resp . parametro2)
+    (if (and (string? username)
+             (string? password)
+             (socialnetwork? socialnetwork))
+        (if (and (not (null? (cons date parametro1)))
+                 (not (null? (cons resp parametro2))))
+            (operation (activar socialnetwork username password) (cons date parametro1) (cons resp parametro2))
+            socialnetwork)
+        socialnetwork)))))
