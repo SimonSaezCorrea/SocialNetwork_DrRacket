@@ -54,11 +54,11 @@
            (string? publicacion)
            (socialnetwork? socialnetwork))
       (desactivar (list (getName_SN socialnetwork)
-            (getDate_SN socialnetwork)
-            (getEncryptFunction_SN socialnetwork)
-            (getDecryptFunction_SN socialnetwork)
-            (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion)))
-      socialnetwork))
+                        (getDate_SN socialnetwork)
+                        (getEncryptFunction_SN socialnetwork)
+                        (getDecryptFunction_SN socialnetwork)
+                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion)))
+      (desactivar socialnetwork)))
 
 (define (postCuentaUsuario_encaps listCuenta date publicacion)
   (if(not(null? listCuenta))
@@ -81,11 +81,12 @@
             (getDecryptFunction_SN socialnetwork)
             (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date publicacion listUsuario
                                            (buscarCuentaActiva socialnetwork))))
-      socialnetwork))
+      (desactivar socialnetwork)))
 
 (define (postCuentaOtroUsuarios_encaps listCuentas date publicacion listUsuario cuentaAutora)
   (if (not (null? listUsuario))
-      (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora)
+      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora)
+                                     date publicacion (cdr listUsuario) cuentaAutora)
       listCuentas))
 
 (define (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora)

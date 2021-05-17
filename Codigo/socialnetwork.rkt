@@ -121,7 +121,7 @@
 (define (buscarCuenta_desactivar listCuenta)
   (if (and (Cuentas? listCuenta)
            (not (null? listCuenta)))
-      (if (eqv? (getNombre_C (car listCuenta)) #t)
+      (if (eqv? (getActividad_C (car listCuenta)) #t)
           (cons (account (getNombre_C (car listCuenta))
                       (getContrasena_C (car listCuenta))
                       (getFecha_C (car listCuenta))
