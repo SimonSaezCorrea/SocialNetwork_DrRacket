@@ -16,6 +16,7 @@
 (provide Cuentas?)
 (provide socialnetwork?)
 
+(provide existeUsuario?)
 (provide addCuenta_SN)
 (provide contadorCuentas)
 (provide activar)
@@ -130,6 +131,9 @@ Rec: La lista modificada
       (cons (car Cuentas) (addCuenta (cdr Cuentas) cuenta))
       (cons cuenta null)))
 
+
+
+
 ;Otras funciones
 
 #|
@@ -145,6 +149,30 @@ Rec: El contador
           contador)
       null))
 
+
+#|
+Des: Permite comprobar si existe el usuario en el socialnetwork
+Dom: socialnetowork, nombre (String)
+Rec: Sentencia booleana
+|#
+(define (existeUsuario? SN nombre)
+  (if (and (string? nombre)
+           (socialnetwork? SN))
+      (existeUsuario?_encaps (getCuenta_SN SN) nombre)
+      #f))
+
+#|
+Des: Permite comprobar si existe el usuario en la lista de usuarios
+Dom: lista de usuarios, nombre (String)
+Rec: Sentencia booleana
+|#
+(define (existeUsuario?_encaps listUsuarios nombre)
+  (if (not(null? listUsuarios))
+      (if (eqv? nombre (getNombre_C (car listUsuarios)))
+          #f
+          (existeUsuario?_encaps (cdr listUsuarios) nombre))
+      #t))
+       
 ;####################################################################################
 
 #|
@@ -245,3 +273,28 @@ Rec: La cuenta activada
           (car listCuenta)
           (buscarCuentaActiva_encaps (cdr listCuenta)))
       null))
+
+;#########################################################################################
+#|
+#|
+Des: Permite buscar una cuenta por usuario en una socialnetwork
+Dom: socialnetwork y un usuario (string)
+Rec: retorna una cuenta
+|#
+(define (buscarCuenta SN usuario)
+  (if (and (socialnetwork? SN)
+           (string? usuario))
+      ((buscarCuenta_encaps (getCuenta_SN SN) usuario))))
+
+#|
+Des: Permite buscar una cuenta por un usuario en una lista de usuario
+Dom: lista de usuario y un usuario (string)
+Rec: retorna una cuenta
+|#
+(define (buscarCuenta_encaps listaUsuario usuario)
+  (if (not (null? listaUsuario))
+      (if (eqv? (getNombre_C (car listaUsuario)) usuario)
+          (car listaUsuario)
+          (buscarCuenta_encaps (cdr listaUsuario) usuario))
+      null))
+|#

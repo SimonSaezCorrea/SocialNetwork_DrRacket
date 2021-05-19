@@ -5,20 +5,11 @@
 (require "Publicacion.rkt")
 (require "socialnetwork.rkt")
 
+
+
 #| Ejemplos
 
-(define encryptFn (lambda (s) (list->string (reverse (string->list s)))))
 
-(define emptyFB (socialnetwork "fb" (day 25 10 2021) encryptFn encryptFn))
-
-(define FB (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
-(day 25 10 2021) "user2" "pass2") (day 25 10 2021) "user3" "pass3"))
-
-(define FB1 (((login FB1 "user1" "pass1" post) (day 28 10 2021)) "0st post"))
-
-(define FB2 (((login FB2 "user3" "pass3" post) (day 28 10 2021)) "1th post" "user1"))
-
-(define FB3 (((login FB3 "user1" "pass1" post) (day 28 10 2021)) "2th post" "user2" "user3"))
 
 |#
 
@@ -33,7 +24,8 @@ Rec: La socialnetwork con la nueva cuenta
   (if (and (string? username)
            (string? password)
            (day? date)
-           (socialnetwork? socialnetwork))
+           (socialnetwork? socialnetwork)
+           (existeUsuario? socialnetwork username))
       (addCuenta_SN socialnetwork (account username password date #f 0 (list )
                                            (contadorCuentas (getCuenta_SN socialnetwork) 1) (list )))
       socialnetwork))
@@ -150,3 +142,64 @@ Rec: La socialnetwork con el post puesto
                 (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora))
           (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora)))
       null))
+
+
+
+;#####################################################################################################################
+
+#|
+Des: Permite hacer un follow a un usuario
+Dom: la socialnetwork, la fecha y un usuario (string)
+Rec: La socialnetwork modificada
+|#
+(define (follow socialnetwork date usuario)
+  (if (and (day? date)
+           (string? (car usuario)))
+      (if (not (existeUsuario? socialnetwork (car usuario)))
+          (desactivar (list (getName_SN socialnetwork)
+                (getDate_SN socialnetwork)
+                (getEncryptFunction_SN socialnetwork)
+                (getDecryptFunction_SN socialnetwork)
+                (follow_encaps (getCuenta_SN socialnetwork) date (car usuario) (buscarCuentaActiva socialnetwork))))
+          socialnetwork)
+      socialnetwork))
+
+#|
+Des: Permite hacer un follow a un usuario
+Dom: la lista de usuarios, la fecha y un usuario (string)
+Rec: La lista de usuarios modificada
+|#
+(define (follow_encaps listaUsuario date usuario usuarioActivo)
+  (if (not(null? listaUsuario))
+      (if (eqv? (getNombre_C (car listaUsuario)) usuario)
+          (cons (addListFollow (car listaUsuario) (getNombre_C usuarioActivo)) (follow_encaps (cdr listaUsuario) date usuario usuarioActivo))
+          (cons (car listaUsuario) (follow_encaps (cdr listaUsuario) date usuario usuarioActivo)))
+      null))
+
+
+
+
+;####################
+
+;EJEMPLOS
+
+(define encryptFn (lambda (s) (list->string (reverse (string->list s)))))
+
+(define emptyFB (socialnetwork "fb" (day 25 10 2021) encryptFn encryptFn))
+
+(define FB (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
+(day 25 10 2021) "user2" "pass2") (day 25 10 2021) "user3" "pass3"))
+
+(define FB1 (((login FB "user1" "pass1" post) (day 28 10 2021)) "0st post"))
+
+(define FB2 (((login FB1 "user3" "pass3" post) (day 28 10 2021)) "1th post" "user1"))
+
+(define FB3 (((login FB2 "user1" "pass1" post) (day 28 10 2021)) "2th post" "user2" "user3"))
+
+(define FB4 (((login FB3 "user1" "pass1" follow) (day 27 10 2021)) "user2"))
+
+(define FB5 (((login FB4 "user1" "pass1" follow) (day 27 10 2021)) "user3"))
+
+(define FB6 (((login FB5 "user2" "pass2" follow) (day 27 10 2021)) "user3"))
+
+(define FB7 (((login FB6 "user2" "pass2" follow) (day 27 10 2021)) "user1"))

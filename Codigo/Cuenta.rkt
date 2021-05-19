@@ -198,7 +198,7 @@ Rec: La lista de followers modificada
 (define (addListFollow_encaps listCuenta nombre)
   (if (not(null? listCuenta))
       (cons (car listCuenta) (addListFollow_encaps (cdr listCuenta) nombre))
-      (cons (car listCuenta) nombre)))
+      (cons nombre null)))
 
 ;###########################################################
 
