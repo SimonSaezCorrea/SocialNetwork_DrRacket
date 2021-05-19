@@ -11,6 +11,11 @@ Date -> dia | mes | ano
 
 ;Construcor
 
+#|
+Des: Es el constructor de un day
+Dom: Dia (Integer), Mes (Integer), Ano (Integer)
+Rec: Una lista con los datos guardados y comprobados
+|#
 (define (day dia mes ano)
   (if (and (integer? dia)
            (< 0 dia)
@@ -26,18 +31,38 @@ Date -> dia | mes | ano
 
 ;Selectores
 
+#|
+Des: Permite obtener el dia de la fecha
+Dom: El dato Day (Una fecha)
+Rec: El dato dia
+|#
 (define (getDia fecha)
   (car fecha))
 
+#|
+Des: Permite obtener el mes de la fecha
+Dom: El dato Day (Una fecha)
+Rec: El dato mes
+|#
 (define (getMes fecha)
   (car (cdr fecha)))
 
+#|
+Des: Permite obtener el ano de la fecha
+Dom: El dato Day (Una fecha)
+Rec: El dato ano
+|#
 (define (getAno fecha)
   (car (cdr (cdr fecha))))
 
 
 ;Pertenencia
 
+#|
+Des: Permite saber si corresponde a una fecha
+Dom: El dato Day (Una fecha)
+Rec: Sentencia booleana
+|#
 (define (day? fecha)
   (if (and (integer? (getDia fecha))
            (< 0 (getDia fecha))
