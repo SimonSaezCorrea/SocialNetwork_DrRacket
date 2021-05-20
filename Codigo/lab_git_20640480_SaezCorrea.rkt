@@ -78,7 +78,8 @@ Rec: La socialnetwork con el post puesto
                         (getDate_SN socialnetwork)
                         (getEncryptFunction_SN socialnetwork)
                         (getDecryptFunction_SN socialnetwork)
-                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion)))
+                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion (getPublicaciones_SN socialnetwork))
+                        (postListPublic (getPublicaciones_SN socialnetwork) date publicacion (getNombre_C (buscarCuentaActiva socialnetwork)))))
       (desactivar socialnetwork)))
 
 #|
@@ -86,13 +87,13 @@ Des: Permite hacer un post a su propia cuenta
 Dom: La lista de cuentas, la fecha y la publicacion
 Rec: La lista de cuentas con el post puesto
 |#
-(define (postCuentaUsuario_encaps listCuenta date publicacion)
+(define (postCuentaUsuario_encaps listCuenta date publicacion listPublic)
   (if(not(null? listCuenta))
      (if(eqv? (getActividad_C (car listCuenta)) #t)
         (cons (addPublicacion (car listCuenta) (posting (getNombre_C (car listCuenta)) date "text" publicacion 0
-                                                    (contadorPublicaciones (getListPublicaciones_C (car listCuenta)) 1)))
-              (postCuentaUsuario_encaps (cdr listCuenta) date publicacion))
-        (cons (car listCuenta) (postCuentaUsuario_encaps (cdr listCuenta) date publicacion)))
+                                                    (contadorPublicaciones listPublic 1)))
+              (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic))
+        (cons (car listCuenta) (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic)))
      null))
 
 
@@ -111,11 +112,13 @@ Rec: La socialnetwork con el post puesto
            (not (null? listUsuario))
            (socialnetwork? socialnetwork))
       (desactivar (list (getName_SN socialnetwork)
-            (getDate_SN socialnetwork)
-            (getEncryptFunction_SN socialnetwork)
-            (getDecryptFunction_SN socialnetwork)
-            (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date publicacion listUsuario
-                                           (buscarCuentaActiva socialnetwork))))
+                        (getDate_SN socialnetwork)
+                        (getEncryptFunction_SN socialnetwork)
+                        (getDecryptFunction_SN socialnetwork)
+                        (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date publicacion listUsuario
+                                                       (buscarCuentaActiva socialnetwork) (getPublicaciones_SN socialnetwork))
+                        (postListPublic_otrosUsers (getPublicaciones_SN socialnetwork) date publicacion listUsuario
+                                                   (getNombre_C (buscarCuentaActiva socialnetwork)))))
       (desactivar socialnetwork)))
 
 #|
@@ -123,10 +126,10 @@ Des: Permite hacer un post a cuentas de otros usuarios
 Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido y la cuenta autora
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaOtroUsuarios_encaps listCuentas date publicacion listUsuario cuentaAutora)
+(define (postCuentaOtroUsuarios_encaps listCuentas date publicacion listUsuario cuentaAutora listPublic)
   (if (not (null? listUsuario))
-      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora)
-                                     date publicacion (cdr listUsuario) cuentaAutora)
+      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora listPublic)
+                                     date publicacion (cdr listUsuario) cuentaAutora listPublic)
       listCuentas))
 
 #|
@@ -134,16 +137,53 @@ Des: Permite hacer un post a cuentas de otros usuarios
 Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido y la cuenta autora
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora)
+(define (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora listPublic)
   (if (not (null? listCuentas))
       (if (eqv? (car listUsuario) (getNombre_C (car listCuentas)))
           (cons (addPublicacion (car listCuentas) (posting (getNombre_C cuentaAutora) date "text" publicacion 0
-                                                           (contadorPublicaciones (getListPublicaciones_C (car listCuentas)) 1)))
-                (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora))
-          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora)))
+                                                           (contadorPublicaciones listPublic 1)))
+                (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora listPublic))
+          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora listPublic)))
       null))
 
+;°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
 
+#|
+Des: Permite añadir la publicacion a la lista de publicaciones general
+Dom: La lista de publicacion, la fecha, la publicacion y el autor
+Rec: La lista de publicaciones modificada
+|#
+(define (postListPublic listPublicaciones date publicacion autor)
+  (if (not (null? listPublicaciones))
+      (cons (car listPublicaciones) (postListPublic (cdr listPublicaciones) date publicacion autor))
+      (cons (list (posting autor date "text" publicacion 0 (contadorPublicaciones listPublicaciones 1))
+                  autor)
+            null)))
+
+#|
+Des: Permite añadir la publicacion a la lista de publicaciones general
+Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
+Rec: La lista de publicaciones modificada
+|#
+(define (postListPublic_otrosUsers listPublicaciones date publicacion listUser autor)
+  (if (not(null? listUser))
+      (postListPublic_otrosUsers (postListPublic_otrosUsers_encaps listPublicaciones date publicacion listUser autor)
+                                 date publicacion (cdr listUser) autor)
+      listPublicaciones))
+
+#|
+Des: Permite añadir la publicacion a la lista de publicaciones general
+Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
+Rec: La lista de publicaciones modificada
+|#
+(define (postListPublic_otrosUsers_encaps listPublicaciones date publicacion listUser autor)
+  (if (not (null? listUser))
+      (if (not (null? listPublicaciones))
+          (cons (car listPublicaciones) (postListPublic_otrosUsers_encaps (cdr listPublicaciones) date publicacion listUser autor))
+          (cons (list (posting autor date "text" publicacion 0 (contadorPublicaciones listPublicaciones 1))
+                      (car listUser))
+                null))
+      null))
 
 ;#####################################################################################################################
 
@@ -157,10 +197,11 @@ Rec: La socialnetwork modificada
            (string? (car usuario)))
       (if (not (existeUsuario? socialnetwork (car usuario)))
           (desactivar (list (getName_SN socialnetwork)
-                (getDate_SN socialnetwork)
-                (getEncryptFunction_SN socialnetwork)
-                (getDecryptFunction_SN socialnetwork)
-                (follow_encaps (getCuenta_SN socialnetwork) date (car usuario) (buscarCuentaActiva socialnetwork))))
+                            (getDate_SN socialnetwork)
+                            (getEncryptFunction_SN socialnetwork)
+                            (getDecryptFunction_SN socialnetwork)
+                            (follow_encaps (getCuenta_SN socialnetwork) date (car usuario) (buscarCuentaActiva socialnetwork))
+                            (getPublicaciones_SN socialnetwork)))
           socialnetwork)
       socialnetwork))
 

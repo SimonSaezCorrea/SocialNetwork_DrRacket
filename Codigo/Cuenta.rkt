@@ -20,7 +20,6 @@
 (provide setActividad)
 (provide addListFollow)
 (provide addPublicacion)
-(provide contadorPublicaciones)
 (provide addPublicacion_encaps)
 #|
 Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_follows | ID | listPublicaciones
@@ -229,19 +228,3 @@ Rec: La lista de publicaciones modificada
   (if (not(null? Publicaciones))
       (cons (car Publicaciones) (addPublicacion_encaps (cdr Publicaciones) publicacion))
       (cons publicacion null)))
-
-
-;###########################################################
-
-#|
-Des: Permite sacar el contador respecto a la lista de publicaciones
-Dom: Lista de publicaciones y un contador (Integer)
-Rec: El contador
-|#
-(define (contadorPublicaciones Publicaciones contador)
-  (if (and (Publicaciones? Publicaciones)
-           (integer? contador))
-      (if (not (null? Publicaciones))
-          (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
-          contador)
-      null))

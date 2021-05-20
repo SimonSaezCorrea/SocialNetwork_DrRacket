@@ -12,6 +12,7 @@
 (provide getDecryptFunction_SN)
 (provide getDate_SN)
 (provide getName_SN)
+(provide getPublicaciones_SN)
 
 (provide Cuentas?)
 (provide socialnetwork?)
@@ -22,6 +23,14 @@
 (provide activar)
 (provide buscarCuentaActiva)
 (provide desactivar)
+(provide contadorPublicaciones)
+
+#|
+socialnetwork -> nombre | fecha | funcion de encriptacion | funcion de desencriptacion | lista de usuarios | lista de un par (lista de publicaciones y usuario)
+                 string | day | funcion | funcion | list de account | list de cons
+
+|#
+
 
 ;Constructor
 
@@ -33,7 +42,7 @@ Rec: Una lista con los datos y se le agrega una lista vacia para los usuarios
 (define (socialnetwork name date encryptFunction decryptFunction)
   (if (and (string? name)
            (day? date))
-      (list name date encryptFunction decryptFunction (list))
+      (list name date encryptFunction decryptFunction (list) (list))
       null))
 
 ;Selectores
@@ -78,6 +87,14 @@ Rec: El cuenta
 (define (getCuenta_SN SN)
   (car (cdr (cdr (cdr (cdr SN))))))
 
+#|
+Des: Permite recoger el cuenta
+Dom: El dato socialnetwork
+Rec: El cuenta
+|#
+(define (getPublicaciones_SN SN)
+  (car (cdr (cdr (cdr (cdr (cdr SN)))))))
+
 ;Pertenencia
 
 #|
@@ -118,7 +135,8 @@ Rec: la socialnetwork modificada
                     (getDate_SN SN)
                     (getEncryptFunction_SN SN)
                     (getDecryptFunction_SN SN)
-                    (addCuenta (getCuenta_SN SN) cuenta))
+                    (addCuenta (getCuenta_SN SN) cuenta)
+                    (getPublicaciones_SN SN))
      SN))
 
 #|
@@ -185,8 +203,12 @@ Rec: La socialnetwork con la cuenta activada
            (string? password)
            (socialnetwork? SN))
       (if (not (null? (buscarCuenta_activar (getCuenta_SN SN) cuenta password)))
-          (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
-                (buscarCuenta_activar (getCuenta_SN SN) cuenta password))
+          (list (getName_SN SN)
+                (getDate_SN SN)
+                (getEncryptFunction_SN SN)
+                (getDecryptFunction_SN SN)
+                (buscarCuenta_activar (getCuenta_SN SN) cuenta password)
+                (getPublicaciones_SN SN))
           SN)
       SN))
 
@@ -203,13 +225,13 @@ Rec: La lista de cuentas con la cuenta acticada
       (if (and (eqv? (getNombre_C (car listCuenta)) cuenta)
                (eqv? (getContrasena_C (car listCuenta)) password))
           (cons (account (getNombre_C (car listCuenta))
-                      (getContrasena_C (car listCuenta))
-                      (getFecha_C (car listCuenta))
-                      #t
-                      (getFollow_C (car listCuenta))
-                      (getListFollow_C (car listCuenta))
-                      (getID_C (car listCuenta))
-                      (getListPublicaciones_C (car listCuenta)))
+                         (getContrasena_C (car listCuenta))
+                         (getFecha_C (car listCuenta))
+                         #t
+                         (getFollow_C (car listCuenta))
+                         (getListFollow_C (car listCuenta))
+                         (getID_C (car listCuenta))
+                         (getListPublicaciones_C (car listCuenta)))
                 (buscarCuenta_activar (cdr listCuenta) cuenta password))
           (cons (car listCuenta) (buscarCuenta_activar (cdr listCuenta) cuenta password)))
       null))
@@ -224,8 +246,12 @@ Rec: La socialnetwork con la cuenta desactivada
 (define (desactivar SN)
   (if (and (socialnetwork? SN))
       (if (not (null? (buscarCuenta_desactivar (getCuenta_SN SN))))
-          (list (getName_SN SN) (getDate_SN SN) (getEncryptFunction_SN SN) (getDecryptFunction_SN SN)
-                (buscarCuenta_desactivar (getCuenta_SN SN)))
+          (list (getName_SN SN)
+                (getDate_SN SN)
+                (getEncryptFunction_SN SN)
+                (getDecryptFunction_SN SN)
+                (buscarCuenta_desactivar (getCuenta_SN SN))
+                (getPublicaciones_SN SN))
           SN)
       SN))
 
@@ -298,3 +324,17 @@ Rec: retorna una cuenta
           (buscarCuenta_encaps (cdr listaUsuario) usuario))
       null))
 |#
+
+;###########################################################
+
+#|
+Des: Permite sacar el contador respecto a la lista de publicaciones
+Dom: Lista de publicaciones y un contador (Integer)
+Rec: El contador
+|#
+(define (contadorPublicaciones Publicaciones contador)
+  (if (integer? contador)
+      (if (not (null? Publicaciones))
+          (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
+          contador)
+      null))
