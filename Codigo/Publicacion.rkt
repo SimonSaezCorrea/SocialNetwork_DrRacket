@@ -7,17 +7,14 @@
 (provide getFecha_P)
 (provide getTipo_P)
 (provide getContenido_P)
-(provide getCompartir_P)
 (provide getID_P)
 
 (provide posting)
 (provide post?)
-(provide setCompartir)
 
 #|
-Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion |
-               Cantidad compartir | ID
-               String | Date | String | String | Integer | Integer
+Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion | ID
+               String | Date | String | String | Integer
 |#
 
 
@@ -28,13 +25,12 @@ Des: Permite la creacion de un constructor de tipo posting
 Dom: autor (String), fecha (day), tipo (String), contenido (String), compartir (Integer), ID (Integer)
 Rec: Una lista con los datos
 |#
-(define (posting autor fecha tipo contenido compartir ID)
+(define (posting autor fecha tipo contenido ID)
   (if (and (string? autor)
            (day? fecha)
            (string? contenido)
-           (integer? compartir)
            (integer? ID))
-      (list autor fecha tipo contenido compartir ID)
+      (list autor fecha tipo contenido ID)
       null))
 
 
@@ -73,20 +69,12 @@ Rec: El dato contenido
   (car (cdr (cdr (cdr publicacion)))))
 
 #|
-Des: Permite obtener el dato de compartir
-Dom: El dato posting(Una lista)
-Rec: El dato compartir
-|#
-(define (getCompartir_P publicacion)
-  (car (cdr (cdr (cdr (cdr publicacion))))))
-
-#|
 Des: Permite obtener el dato de ID
 Dom: El dato posting(Una lista)
 Rec: El dato ID
 |#
 (define (getID_P publicacion)
-  (car (cdr (cdr (cdr (cdr (cdr publicacion)))))))
+  (car (cdr (cdr (cdr (cdr publicacion))))))
 
 ;Pertenencia
 
@@ -105,18 +93,4 @@ Rec: Sentencia booleana
            (equal? (getTipo_P publicacion) "text")
            (equal? (getTipo_P publicacion) "audio"))
        (string? (getContenido_P publicacion))
-       (integer? (getCompartir_P publicacion))
        (integer? (getID_P publicacion))))
-
-; Modificador
-
-#|
-Des: Permite cambiar el dato de compartir
-Dom: El dato posting( Una lista) y el nuevo numero (Integer)
-Rec: El posting modificado
-|#
-(define (setCompartir publicacion cantidad)
-  (if (post? publicacion)
-      (posting (getAutor_P publicacion) (getFecha_P publicacion) (getTipo_P publicacion)
-            (getContenido_P publicacion) cantidad (getID_P publicacion))
-      publicacion))

@@ -11,6 +11,7 @@
 (provide getListFollow_C)
 (provide getID_C)
 (provide getListPublicaciones_C)
+(provide getListPublicacionesCompartidas_C)
 
 (provide account)
 
@@ -21,9 +22,10 @@
 (provide addListFollow)
 (provide addPublicacion)
 (provide addPublicacion_encaps)
+(provide addPublicacionCompartidas)
 #|
-Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_follows | ID | listPublicaciones
-          String | String | Date | Boolean | Integer | list account | Integer | list post
+Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_follows | ID | listPublicaciones | lista par publicacionCompartida y usuario
+          String | String | Date | Boolean | Integer | list account | Integer | list post | list list de publicacion y usuario
 |#
 
 ;Constructor
@@ -34,14 +36,14 @@ Dom: nombre (String), contrasena (String), fecha (day), actividad (boolean), fol
      listFollow (list cuentas (String)), ID (Integer), lista de publicaciones (list de posting)
 Rec: Una lista con los datos
 |#
-(define (account nombre contrasena fecha actividad follow listFollow ID listPublicaciones)
+(define (account nombre contrasena fecha actividad follow listFollow ID listPublicaciones listCompartida)
   (if (and (string? nombre)
            (string? contrasena)
            (day? fecha)
            (boolean? actividad)
            (integer? follow)
            (integer? ID))
-      (list nombre contrasena fecha actividad follow listFollow ID listPublicaciones)
+      (list nombre contrasena fecha actividad follow listFollow ID listPublicaciones listCompartida)
       null))
 
 ;Selector
@@ -110,6 +112,15 @@ Rec: El dato lista de publicaciones
 (define (getListPublicaciones_C cuenta)
   (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr cuenta)))))))))
 
+#|
+Des: Permite obtener el dato de lista de publicaciones compartidas
+Dom: El dato account(Una lista)
+Rec: El dato lista de publicaciones compartidas
+|#
+(define (getListPublicacionesCompartidas_C cuenta)
+  (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr cuenta))))))))))
+
+
 
 ;Pertenencia
 
@@ -165,7 +176,8 @@ Rec: La cuenta modificada
                    (getFollow_C cuenta)
                    (getListFollow_C cuenta)
                    (getID_C cuenta)
-                   (getListPublicaciones_C cuenta))
+                   (getListPublicaciones_C cuenta)
+                   (getListPublicacionesCompartidas_C cuenta))
           cuenta)
       null))
 
@@ -186,7 +198,8 @@ Rec: La cuenta modificada
                (+(getFollow_C cuenta) 1)
                (addListFollow_encaps (getListFollow_C cuenta) nombre)
                (getID_C cuenta)
-               (getListPublicaciones_C cuenta))
+               (getListPublicaciones_C cuenta)
+               (getListPublicacionesCompartidas_C cuenta))
       cuenta))
 
 #|
@@ -216,7 +229,8 @@ Rec: Una nueva cuenta modificada
               (getFollow_C cuenta)
               (getListFollow_C cuenta)
               (getID_C cuenta)
-              (addPublicacion_encaps (getListPublicaciones_C cuenta) publicacion))
+              (addPublicacion_encaps (getListPublicaciones_C cuenta) publicacion)
+              (getListPublicacionesCompartidas_C cuenta))
      cuenta))
 
 #|
@@ -228,3 +242,34 @@ Rec: La lista de publicaciones modificada
   (if (not(null? Publicaciones))
       (cons (car Publicaciones) (addPublicacion_encaps (cdr Publicaciones) publicacion))
       (cons publicacion null)))
+
+;####################################################################
+
+#|
+Des: Permite añadir una publicacion a la lista de publicaciones compartidas de una cuenta
+Dom: La cuenta que se le agregara y la publicacion a agregar
+Rec: Una nueva cuenta modificada
+|#
+(define (addPublicacionCompartidas cuenta publicacion name)
+  (if(and(account? cuenta)
+         (post? publicacion))
+     (account (getNombre_C cuenta)
+              (getContrasena_C cuenta)
+              (getFecha_C cuenta)
+              (getActividad_C cuenta)
+              (getFollow_C cuenta)
+              (getListFollow_C cuenta)
+              (getID_C cuenta)
+              (getListPublicaciones_C cuenta)
+              (addPublicacionCompartidas_encaps (getListPublicacionesCompartidas_C publicacion name)))
+     cuenta))
+
+#|
+Des: Permite añadir una publicacion a la lista de publicaciones compartidas
+Dom: La lista de publicaciones y la publicacion
+Rec: La lista de publicaciones modificada
+|#
+(define (addPublicacionCompartidas_encaps PublicacionesCompartidas publicacion name)
+  (if (not(null? PublicacionesCompartidas))
+      (cons (car PublicacionesCompartidas) (addPublicacionCompartidas_encaps (cdr PublicacionesCompartidas) publicacion name))
+      (cons (list publicacion name) null)))

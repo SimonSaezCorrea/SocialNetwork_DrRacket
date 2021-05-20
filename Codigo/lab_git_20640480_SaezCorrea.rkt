@@ -27,10 +27,10 @@ Rec: La socialnetwork con la nueva cuenta
            (socialnetwork? socialnetwork)
            (existeUsuario? socialnetwork username))
       (addCuenta_SN socialnetwork (account username password date #f 0 (list )
-                                           (contadorCuentas (getCuenta_SN socialnetwork) 1) (list )))
+                                           (contadorCuentas (getCuenta_SN socialnetwork) 1) (list ) (list )))
       socialnetwork))
 
-;##############################################################################################################
+;###########################################################################################################################
 
 
 #|
@@ -48,7 +48,7 @@ Rec: La socialnetwork con la nueva cuenta
             socialnetwork)
         socialnetwork)))))
 
-;##################################################################################################################
+;###########################################################################################################################
 
 
 #|
@@ -78,8 +78,10 @@ Rec: La socialnetwork con el post puesto
                         (getDate_SN socialnetwork)
                         (getEncryptFunction_SN socialnetwork)
                         (getDecryptFunction_SN socialnetwork)
-                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion (getPublicaciones_SN socialnetwork))
-                        (postListPublic (getPublicaciones_SN socialnetwork) date publicacion (getNombre_C (buscarCuentaActiva socialnetwork)))))
+                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion
+                                                  (getPublicaciones_SN socialnetwork))
+                        (postListPublic (getPublicaciones_SN socialnetwork) (getPublicaciones_SN socialnetwork)
+                                        date publicacion (getNombre_C (buscarCuentaActiva socialnetwork)))))
       (desactivar socialnetwork)))
 
 #|
@@ -90,7 +92,7 @@ Rec: La lista de cuentas con el post puesto
 (define (postCuentaUsuario_encaps listCuenta date publicacion listPublic)
   (if(not(null? listCuenta))
      (if(eqv? (getActividad_C (car listCuenta)) #t)
-        (cons (addPublicacion (car listCuenta) (posting (getNombre_C (car listCuenta)) date "text" publicacion 0
+        (cons (addPublicacion (car listCuenta) (posting (getNombre_C (car listCuenta)) date "text" publicacion
                                                     (contadorPublicaciones listPublic 1)))
               (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic))
         (cons (car listCuenta) (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic)))
@@ -116,8 +118,10 @@ Rec: La socialnetwork con el post puesto
                         (getEncryptFunction_SN socialnetwork)
                         (getDecryptFunction_SN socialnetwork)
                         (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date publicacion listUsuario
-                                                       (buscarCuentaActiva socialnetwork) (getPublicaciones_SN socialnetwork))
-                        (postListPublic_otrosUsers (getPublicaciones_SN socialnetwork) date publicacion listUsuario
+                                                       (buscarCuentaActiva socialnetwork)
+                                                       (getPublicaciones_SN socialnetwork))
+                        (postListPublic_otrosUsers (getPublicaciones_SN socialnetwork) (getPublicaciones_SN socialnetwork)
+                                                   date publicacion listUsuario
                                                    (getNombre_C (buscarCuentaActiva socialnetwork)))))
       (desactivar socialnetwork)))
 
@@ -128,7 +132,8 @@ Rec: La socialnetwork con el post puesto
 |#
 (define (postCuentaOtroUsuarios_encaps listCuentas date publicacion listUsuario cuentaAutora listPublic)
   (if (not (null? listUsuario))
-      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora listPublic)
+      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario
+                                                                      cuentaAutora listPublic)
                                      date publicacion (cdr listUsuario) cuentaAutora listPublic)
       listCuentas))
 
@@ -140,10 +145,11 @@ Rec: La socialnetwork con el post puesto
 (define (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora listPublic)
   (if (not (null? listCuentas))
       (if (eqv? (car listUsuario) (getNombre_C (car listCuentas)))
-          (cons (addPublicacion (car listCuentas) (posting (getNombre_C cuentaAutora) date "text" publicacion 0
+          (cons (addPublicacion (car listCuentas) (posting (getNombre_C cuentaAutora) date "text" publicacion
                                                            (contadorPublicaciones listPublic 1)))
                 (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora listPublic))
-          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora listPublic)))
+          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario
+                                                                   cuentaAutora listPublic)))
       null))
 
 ;°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
@@ -153,10 +159,10 @@ Des: Permite añadir la publicacion a la lista de publicaciones general
 Dom: La lista de publicacion, la fecha, la publicacion y el autor
 Rec: La lista de publicaciones modificada
 |#
-(define (postListPublic listPublicaciones date publicacion autor)
+(define (postListPublic listPublicaciones listPublicacionesTotal date publicacion autor)
   (if (not (null? listPublicaciones))
       (cons (car listPublicaciones) (postListPublic (cdr listPublicaciones) date publicacion autor))
-      (cons (list (posting autor date "text" publicacion 0 (contadorPublicaciones listPublicaciones 1))
+      (cons (list (posting autor date "text" publicacion (contadorPublicaciones listPublicacionesTotal 1))
                   autor)
             null)))
 
@@ -165,9 +171,12 @@ Des: Permite añadir la publicacion a la lista de publicaciones general
 Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
 Rec: La lista de publicaciones modificada
 |#
-(define (postListPublic_otrosUsers listPublicaciones date publicacion listUser autor)
+(define (postListPublic_otrosUsers listPublicaciones listPublicacionesTotal date publicacion listUser autor)
   (if (not(null? listUser))
-      (postListPublic_otrosUsers (postListPublic_otrosUsers_encaps listPublicaciones date publicacion listUser autor)
+      (postListPublic_otrosUsers (postListPublic_otrosUsers_encaps listPublicaciones listPublicacionesTotal
+                                                                   date publicacion listUser autor)
+                                 (postListPublic_otrosUsers_encaps listPublicaciones listPublicacionesTotal
+                                                                   date publicacion listUser autor)
                                  date publicacion (cdr listUser) autor)
       listPublicaciones))
 
@@ -176,16 +185,17 @@ Des: Permite añadir la publicacion a la lista de publicaciones general
 Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
 Rec: La lista de publicaciones modificada
 |#
-(define (postListPublic_otrosUsers_encaps listPublicaciones date publicacion listUser autor)
+(define (postListPublic_otrosUsers_encaps listPublicaciones listPublicacionesTotal date publicacion listUser autor)
   (if (not (null? listUser))
       (if (not (null? listPublicaciones))
-          (cons (car listPublicaciones) (postListPublic_otrosUsers_encaps (cdr listPublicaciones) date publicacion listUser autor))
-          (cons (list (posting autor date "text" publicacion 0 (contadorPublicaciones listPublicaciones 1))
+          (cons (car listPublicaciones) (postListPublic_otrosUsers_encaps (cdr listPublicaciones) listPublicacionesTotal
+                                                                          date publicacion listUser autor))
+          (cons (list (posting autor date "text" publicacion (contadorPublicaciones listPublicacionesTotal 1))
                       (car listUser))
                 null))
       null))
 
-;#####################################################################################################################
+;###########################################################################################################################
 
 #|
 Des: Permite hacer un follow a un usuario
@@ -200,7 +210,8 @@ Rec: La socialnetwork modificada
                             (getDate_SN socialnetwork)
                             (getEncryptFunction_SN socialnetwork)
                             (getDecryptFunction_SN socialnetwork)
-                            (follow_encaps (getCuenta_SN socialnetwork) date (car usuario) (buscarCuentaActiva socialnetwork))
+                            (follow_encaps (getCuenta_SN socialnetwork) date (car usuario) (buscarCuentaActiva
+                                                                                            socialnetwork))
                             (getPublicaciones_SN socialnetwork)))
           socialnetwork)
       socialnetwork))
@@ -213,12 +224,68 @@ Rec: La lista de usuarios modificada
 (define (follow_encaps listaUsuario date usuario usuarioActivo)
   (if (not(null? listaUsuario))
       (if (eqv? (getNombre_C (car listaUsuario)) usuario)
-          (cons (addListFollow (car listaUsuario) (getNombre_C usuarioActivo)) (follow_encaps (cdr listaUsuario) date usuario usuarioActivo))
+          (cons (addListFollow (car listaUsuario) (getNombre_C usuarioActivo)) (follow_encaps (cdr listaUsuario)
+                                                                                              date usuario usuarioActivo))
           (cons (car listaUsuario) (follow_encaps (cdr listaUsuario) date usuario usuarioActivo)))
       null))
 
 
+;###########################################################################################################################
 
+(define (share socialnetwork date ID)
+  (if (null? (cdr ID))
+      (shareMiCuenta socialnetwork date (car ID))
+      (shareOtraCuenta socialnetwork date (car ID) (cdr ID))))
+
+(define (shareMiCuenta SN date ID)
+  (if (and (socialnetwork? SN)
+           (day? date)
+           (integer? ID))
+      (desactivar (list (getName_SN SN)
+                        (getDate_SN SN)
+                        (getEncryptFunction_SN SN)
+                        (getDecryptFunction_SN SN)
+                        (shareMiCuenta_encaps (getCuenta_SN SN) (getPublicaciones_SN SN) date ID)
+                        (getPublicaciones_SN SN)))
+      SN))
+
+(define (shareMiCuenta_encaps listUsuarios listPublicacion date ID)
+  (if (not (null? listUsuarios))
+      (if (eqv? #t (getActividad_C (car listUsuarios)))
+          (if (eqv? (getID_P (car (car listPublicacion))) ID)
+              (cons (addPublicacion (car listUsuarios) (car (car listPublicacion)))
+                    (shareMiCuenta_encaps (cdr listUsuarios) listPublicacion date ID))
+              (shareMiCuenta_encaps listUsuarios (cdr listPublicacion) date ID))
+          (cons (car listUsuarios) (shareMiCuenta_encaps (cdr listUsuarios) listPublicacion date ID)))
+  null))
+
+(define (shareOtraCuenta SN date ID listUser)
+  (if (and (socialnetwork? SN)
+           (day? date)
+           (integer? ID))
+      (desactivar (list (getName_SN SN)
+                        (getDate_SN SN)
+                        (getEncryptFunction_SN SN)
+                        (getDecryptFunction_SN SN)
+                        (shareOtraCuenta_encaps (getCuenta_SN SN) (getPublicaciones_SN SN) date ID listUser)
+                        (getPublicaciones_SN SN)))
+      SN))
+
+(define (shareOtraCuenta_encaps listUsuarios listPublicacion date ID listUser)
+  (if (not(null? listUser))
+      (shareOtraCuenta_encaps (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser)
+                              listUsuarios listPublicacion date ID (cdr listUser))
+      listUsuarios))
+  
+(define (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser)
+  (if (not(null? listUsuarios))
+      (if (eqv? (getNombre_C (car listUsuarios)) (car listUser))
+          (if (eqv? ID (getID_P (car (car listPublicacion))))
+              (cons (addPublicacionCompartidas (car listUsuarios) (car (car listPublicacion)) (car listUser))
+                    (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser))
+              (shareOtraCuenta_encaps2 listUsuarios (cdr listPublicacion) date ID listUser))
+          (cons (car listUsuarios) (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser)))
+      null))
 
 ;####################
 
@@ -230,6 +297,7 @@ Rec: La lista de usuarios modificada
 
 (define FB (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
 (day 25 10 2021) "user2" "pass2") (day 25 10 2021) "user3" "pass3"))
+
 
 (define FB1 (((login FB "user1" "pass1" post) (day 28 10 2021)) "0st post"))
 
@@ -244,3 +312,4 @@ Rec: La lista de usuarios modificada
 (define FB6 (((login FB5 "user2" "pass2" follow) (day 27 10 2021)) "user3"))
 
 (define FB7 (((login FB6 "user2" "pass2" follow) (day 27 10 2021)) "user1"))
+
