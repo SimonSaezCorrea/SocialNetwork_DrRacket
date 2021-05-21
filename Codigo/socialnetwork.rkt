@@ -4,7 +4,9 @@
 (require "Cuenta.rkt")
 (require "Publicacion.rkt")
 
+(provide (all-defined-out))
 
+#|
 (provide socialnetwork)
 
 (provide getCuenta_SN)
@@ -24,6 +26,8 @@
 (provide buscarCuentaActiva)
 (provide desactivar)
 (provide contadorPublicaciones)
+|#
+
 
 #|
 socialnetwork -> nombre | fecha | funcion de encriptacion | funcion de desencriptacion | lista de usuarios | lista de un par (lista de publicaciones y usuario)

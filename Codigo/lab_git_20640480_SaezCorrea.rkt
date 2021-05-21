@@ -7,12 +7,6 @@
 
 
 
-#| Ejemplos
-
-
-
-|#
-
 ;Funciones principales
 
 #|
@@ -30,7 +24,7 @@ Rec: La socialnetwork con la nueva cuenta
                                            (contadorCuentas (getCuenta_SN socialnetwork) 1) (list ) (list )))
       socialnetwork))
 
-;###########################################################################################################################
+;##########################################################################################################################
 
 
 #|
@@ -42,13 +36,16 @@ Rec: La socialnetwork con la nueva cuenta
     (if (and (string? username)
              (string? password)
              (socialnetwork? socialnetwork))
-        (if (and (day? date)
+        (if (and (not (null? date))
                  (not (null? (cons resp parametro2))))
-            (operation (activar socialnetwork username password) date (cons resp parametro2))
-            socialnetwork)
+            (if (and (day? date)
+                     (not (null? (cons resp parametro2))))
+                (operation (activar socialnetwork username password) date (cons resp parametro2))
+                socialnetwork)
+            (operation socialnetwork))
         socialnetwork)))))
 
-;###########################################################################################################################
+;##########################################################################################################################
 
 
 #|
@@ -153,7 +150,7 @@ Rec: La socialnetwork con el post puesto
       null))
 
 ;°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
-
+;SE AÑADE A LA LISTA DE PUBLICACIONES QUE ESTAN TODAS
 #|
 Des: Permite añadir la publicacion a la lista de publicaciones general
 Dom: La lista de publicacion, la fecha, la publicacion y el autor
@@ -195,7 +192,7 @@ Rec: La lista de publicaciones modificada
                 null))
       null))
 
-;###########################################################################################################################
+;##########################################################################################################################
 
 #|
 Des: Permite hacer un follow a un usuario
@@ -230,13 +227,23 @@ Rec: La lista de usuarios modificada
       null))
 
 
-;###########################################################################################################################
+;##########################################################################################################################
 
+#|
+Des: Permite compartir una publicacion segun ID a si mismo o alguien
+Dom: El socialnetwork, la fecha y el ID
+Rec: La socialnetwork modificada
+|#
 (define (share socialnetwork date ID)
   (if (null? (cdr ID))
       (shareMiCuenta socialnetwork date (car ID))
       (shareOtraCuenta socialnetwork date (car ID) (cdr ID))))
 
+#|
+Des: Permite compartir una publicacion segun ID a si mismo
+Dom: El socialnetwork, la fecha y el ID
+Rec: La socialnetwork modificada
+|#
 (define (shareMiCuenta SN date ID)
   (if (and (socialnetwork? SN)
            (day? date)
@@ -249,16 +256,29 @@ Rec: La lista de usuarios modificada
                         (getPublicaciones_SN SN)))
       SN))
 
+#|
+Des: Permite compartir una publicacion segun ID a si mismo
+Dom: La lista de usuario, la lista de publicaciones, la fecha y el ID
+Rec: La lista de usuarios modificada
+|#
 (define (shareMiCuenta_encaps listUsuarios listPublicacion date ID)
   (if (not (null? listUsuarios))
       (if (eqv? #t (getActividad_C (car listUsuarios)))
           (if (eqv? (getID_P (car (car listPublicacion))) ID)
-              (cons (addPublicacion (car listUsuarios) (car (car listPublicacion)))
+              (cons (addPublicacionCompartidas (car listUsuarios) (car (car listPublicacion))
+                                               (getNombre_C (buscarCuentaActiva_encaps listUsuarios)))
                     (shareMiCuenta_encaps (cdr listUsuarios) listPublicacion date ID))
               (shareMiCuenta_encaps listUsuarios (cdr listPublicacion) date ID))
           (cons (car listUsuarios) (shareMiCuenta_encaps (cdr listUsuarios) listPublicacion date ID)))
   null))
 
+;°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+#|
+Des: Permite compartir una publicacion segun ID a alguien
+Dom: El socialnetwork, la fecha, el ID y la lista de usuarios a compartir
+Rec: La socialnetwork modificada
+|#
 (define (shareOtraCuenta SN date ID listUser)
   (if (and (socialnetwork? SN)
            (day? date)
@@ -271,21 +291,38 @@ Rec: La lista de usuarios modificada
                         (getPublicaciones_SN SN)))
       SN))
 
+#|
+Des: Permite compartir una publicacion segun ID a alguien
+Dom: La lista de usuarios, la lista de publicaciones, la fecha, el ID y la lista de usuarios a compartir
+Rec: La lista de usuarios modificada
+|#
 (define (shareOtraCuenta_encaps listUsuarios listPublicacion date ID listUser)
   (if (not(null? listUser))
-      (shareOtraCuenta_encaps (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser)
-                              listUsuarios listPublicacion date ID (cdr listUser))
+      (shareOtraCuenta_encaps (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser
+                                                       (getNombre_C (buscarCuentaActiva_encaps listUsuarios)))
+                              listPublicacion date ID (cdr listUser))
       listUsuarios))
-  
-(define (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser)
+
+#|
+Des: Permite compartir una publicacion segun ID a alguien
+Dom: La lista de usuarios, la lista de publicaciones, la fecha, el ID, la lista de usuarios a compartir y el autor
+Rec: La lista de usuarios modificada
+|#
+(define (shareOtraCuenta_encaps2 listUsuarios listPublicacion date ID listUser autor)
   (if (not(null? listUsuarios))
       (if (eqv? (getNombre_C (car listUsuarios)) (car listUser))
           (if (eqv? ID (getID_P (car (car listPublicacion))))
-              (cons (addPublicacionCompartidas (car listUsuarios) (car (car listPublicacion)) (car listUser))
-                    (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser))
-              (shareOtraCuenta_encaps2 listUsuarios (cdr listPublicacion) date ID listUser))
-          (cons (car listUsuarios) (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser)))
+              (cons (addPublicacionCompartidas (car listUsuarios) (car (car listPublicacion)) autor)
+                    (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser autor))
+              (shareOtraCuenta_encaps2 listUsuarios (cdr listPublicacion) date ID listUser autor))
+          (cons (car listUsuarios) (shareOtraCuenta_encaps2 (cdr listUsuarios) listPublicacion date ID listUser autor)))
       null))
+
+
+;##########################################################################################################################
+
+(define (socialnetwork->string socialnetwork) socialnetwork)
+
 
 ;####################
 
@@ -298,7 +335,7 @@ Rec: La lista de usuarios modificada
 (define FB (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
 (day 25 10 2021) "user2" "pass2") (day 25 10 2021) "user3" "pass3"))
 
-
+#|
 (define FB1 (((login FB "user1" "pass1" post) (day 28 10 2021)) "0st post"))
 
 (define FB2 (((login FB1 "user3" "pass3" post) (day 28 10 2021)) "1th post" "user1"))
@@ -313,3 +350,9 @@ Rec: La lista de usuarios modificada
 
 (define FB7 (((login FB6 "user2" "pass2" follow) (day 27 10 2021)) "user1"))
 
+(define FB8 (((login FB7 "user1" "pass1" share) (day 28 10 2021)) 2))
+
+(define FB9 (((login FB8 "user1" "pass1" share) (day 28 10 2021)) 2 "user2" "user3"))
+
+(define FB10 (((login FB9 "user3" "pass3" share) (day 28 10 2021)) 4 "user2" "user1"))
+|#

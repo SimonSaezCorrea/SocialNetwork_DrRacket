@@ -1,8 +1,9 @@
 #lang racket
 
 (require "date.rkt")
+(provide (all-defined-out))
 
-
+#|
 (provide getAutor_P)
 (provide getFecha_P)
 (provide getTipo_P)
@@ -11,6 +12,8 @@
 
 (provide posting)
 (provide post?)
+|#
+
 
 #|
 Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion | ID

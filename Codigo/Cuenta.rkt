@@ -2,7 +2,8 @@
 
 (require "date.rkt")
 (require "Publicacion.rkt")
-
+(provide (all-defined-out))
+#|
 (provide getNombre_C)
 (provide getContrasena_C)
 (provide getFecha_C)
@@ -23,6 +24,9 @@
 (provide addPublicacion)
 (provide addPublicacion_encaps)
 (provide addPublicacionCompartidas)
+|#
+
+
 #|
 Cuenta -> nombre | contrasena | fecha creacion | actividad | follows | list_follows | ID | listPublicaciones | lista par publicacionCompartida y usuario
           String | String | Date | Boolean | Integer | list account | Integer | list post | list list de publicacion y usuario
@@ -261,7 +265,7 @@ Rec: Una nueva cuenta modificada
               (getListFollow_C cuenta)
               (getID_C cuenta)
               (getListPublicaciones_C cuenta)
-              (addPublicacionCompartidas_encaps (getListPublicacionesCompartidas_C publicacion name)))
+              (addPublicacionCompartidas_encaps (getListPublicacionesCompartidas_C cuenta) publicacion name))
      cuenta))
 
 #|
