@@ -1,8 +1,6 @@
 #lang racket
 
-(provide day)
-(provide day?)
-
+(provide (all-defined-out))
 
 #|
 Date -> dia | mes | ano
@@ -74,3 +72,13 @@ Rec: Sentencia booleana
            (< 0 (getAno fecha)))
       #t
       #f))
+
+;Otras funciones
+
+#|
+Des: Permite crear un string con el contenido de una Fecha
+Dom: Fecha y un string
+Rec: String
+|#
+(define (string->fecha fecha)
+  (string-append "La fecha de creacion es " (number->string (getDia fecha)) "/" (number->string (getMes fecha)) "/" (number->string (getAno fecha)) "\n"))

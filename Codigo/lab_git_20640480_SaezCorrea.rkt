@@ -32,16 +32,12 @@ Des: Permite hacer login a una cuenta y hacer una funcion
 Dom: La socialnetwork,  el nombre, la contraseña y la operacion | fecha | otro parametros
 Rec: La socialnetwork con la nueva cuenta
 |#
-
-(define login (lambda (socialnetwork username password operation)(lambda (date)(lambda (parametro1 . parametro2)
+(define (login socialnetwork username password operation)
     (if (and (string? username)
              (string? password)
              (socialnetwork? socialnetwork))
-        (if (and (day? date)
-                 (not (null? (cons parametro1 parametro2))))
-            (((operation (activar socialnetwork username password)) date) parametro1 parametro2)
-            socialnetwork)
-        socialnetwork)))))
+        (operation (activar socialnetwork username password))
+        socialnetwork))
 
 
 ;##########################################################################################################################
@@ -52,9 +48,7 @@ Des: Permite hacer un post de una cuenta logeada
 Dom: El socialnetwork, la fecha y una lista con la publicacion y posibles usuarios de envio
 Rec: La socialnetwork con el post puesto
 |#
-
-
-(define (post socialnetwork) (lambda (date) (lambda (resp users)
+(define (post socialnetwork) (lambda (date) (lambda (resp . users)
   (if (null? users)
       (postCuentaUsuario socialnetwork date resp)
       (postCuentaOtroUsuarios socialnetwork date resp users)))))
@@ -204,7 +198,7 @@ Des: Permite hacer un follow a un usuario
 Dom: la socialnetwork, la fecha y un usuario (string)
 Rec: La socialnetwork modificada
 |#
-(define (follow socialnetwork) (lambda (date) (lambda (usuario nada)
+(define (follow socialnetwork) (lambda (date) (lambda (usuario)
   (if (and (day? date)
            (string? usuario))
       (if (not (existeUsuario? socialnetwork usuario))
@@ -238,7 +232,7 @@ Des: Permite compartir una publicacion segun ID a si mismo o alguien
 Dom: El socialnetwork, la fecha y el ID
 Rec: La socialnetwork modificada
 |#
-(define (share socialnetwork) (lambda (date) (lambda (ID users)
+(define (share socialnetwork) (lambda (date) (lambda (ID . users)
   (if (null? users)
       (shareMiCuenta socialnetwork date ID)
       (shareOtraCuenta socialnetwork date ID users)))))
@@ -325,9 +319,18 @@ Rec: La lista de usuarios modificada
 
 ;##########################################################################################################################
 
-(define (socialnetwork->string socialnetwork) (lambda (nada1) (lambda (nada2 nada3)
-                                                socialnetwork)))
+(define (socialnetwork->string socialnetwork)
+  (if (existeUserActivo? socialnetwork)
+      (social->string_login (buscarCuentaActiva socialnetwork) (getDecryptFunction_SN socialnetwork))
+      (social->string_total socialnetwork (getDecryptFunction_SN socialnetwork))))
 
+(define (social->string_login User descrypt)
+  (string->users User descrypt "activada"))
+
+(define (social->string_total socialnetwork descrypt)
+  (string-append "El nombre de la socialnetowrk es " (getName_SN socialnetwork) "\n"
+                 "Las cuentas que tiene son:\n"
+                 (string->Cuentas (getCuenta_SN socialnetwork) descrypt "")))
 
 ;####################
 
@@ -348,7 +351,7 @@ Rec: La lista de usuarios modificada
 (define FB3 (((login FB2 "user1" "pass1" post) (day 28 10 2021)) "2th post" "user2" "user3"))
 
 
-(define FB4 (((login FB3 "user1" "pass1" follow) (day 27 10 2021)) "user2"))
+(define FB4  (((login FB3 "user1" "pass1" follow) (day 27 10 2021)) "user2"))
 
 (define FB5 (((login FB4 "user1" "pass1" follow) (day 27 10 2021)) "user3"))
 

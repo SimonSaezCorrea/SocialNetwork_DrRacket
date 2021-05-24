@@ -3,17 +3,6 @@
 (require "date.rkt")
 (provide (all-defined-out))
 
-#|
-(provide getAutor_P)
-(provide getFecha_P)
-(provide getTipo_P)
-(provide getContenido_P)
-(provide getID_P)
-
-(provide posting)
-(provide post?)
-|#
-
 
 #|
 Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la publicacion | ID
@@ -97,3 +86,15 @@ Rec: Sentencia booleana
            (equal? (getTipo_P publicacion) "audio"))
        (string? (getContenido_P publicacion))
        (integer? (getID_P publicacion))))
+
+#|
+Des: Permite crear un string con el contenido de un post
+Dom: Publicacion, un string y la funcion de descriptacion
+Rec: String
+|#
+(define (string->post Post descrypt)
+  (string-append "    El ID del post es: " (number->string (getID_P Post)) "\n"
+                 "    El autor de la publicacion es: " (getAutor_P Post) "\n"
+                 "    la fecha de creacion fue: " (string->fecha (getFecha_P Post))
+                 "    Es de tipo " (getTipo_P Post) "\n"
+                 "    El contenido es: \n      " (descrypt (getContenido_P Post)) "\n"))

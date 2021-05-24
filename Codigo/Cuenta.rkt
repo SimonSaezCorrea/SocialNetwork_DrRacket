@@ -3,28 +3,6 @@
 (require "date.rkt")
 (require "Publicacion.rkt")
 (provide (all-defined-out))
-#|
-(provide getNombre_C)
-(provide getContrasena_C)
-(provide getFecha_C)
-(provide getActividad_C)
-(provide getFollow_C)
-(provide getListFollow_C)
-(provide getID_C)
-(provide getListPublicaciones_C)
-(provide getListPublicacionesCompartidas_C)
-
-(provide account)
-
-(provide account?)
-(provide Publicaciones?)
-
-(provide setActividad)
-(provide addListFollow)
-(provide addPublicacion)
-(provide addPublicacion_encaps)
-(provide addPublicacionCompartidas)
-|#
 
 
 #|
@@ -277,3 +255,52 @@ Rec: La lista de publicaciones modificada
   (if (not(null? PublicacionesCompartidas))
       (cons (car PublicacionesCompartidas) (addPublicacionCompartidas_encaps (cdr PublicacionesCompartidas) publicacion name))
       (cons (list publicacion name) null)))
+
+;#####################################################################################################################
+
+#|
+Des: Permite crear un string con el contenido de una lista de follows
+Dom: La lista de follows y un string
+Rec: String
+|#
+(define (string->listFollow listFollow string)
+  (if (not (null? listFollow))
+      (string->listFollow (cdr listFollow) (string-append string "     - " (car listFollow) "\n"))
+      string))
+
+#|
+Des: Permite crear un string con el contenido de una lista de publicaciones
+Dom: La lista de post, un string y la funcion de descriptacion
+Rec: String
+|#
+(define (string->listPost listDePost string descrypt)
+  (if (not (null? listDePost))
+      (string-append string (string->listPost (cdr listDePost) (string->post (car listDePost) descrypt) descrypt))
+      string))
+
+#|
+Des: Permite crear un string con el contenido de una lista de publicacion compartida
+Dom: La lista de post compartida, un string y la funcion de descriptacion
+Rec: String
+|#
+(define (string->listPostComp listDePostComp string descrypt)
+  (if (not(null? listDePostComp))
+      (string-append string "Compartida por el user: " (car(cdr(car listDePostComp))) "\n"(string->listPostComp (cdr listDePostComp) (string-append (string->post (car (car listDePostComp)) descrypt)) descrypt))
+      string))
+
+#|
+Des: Permite crear un string con el contenido de un usuario
+Dom: El user, la funcion de descriptacion y su actividad
+Rec: String
+|#
+(define (string->users User descrypt actividad)
+  (string-append "El ID del usuario es: " (number->string (getID_C User)) "\n"
+                 "El nombre del usuario es: "(getNombre_C User) "\n"
+                 "La contraseña es: " (getContrasena_C User) "\n"
+                 (string->fecha (getFecha_C User))
+                 "La sesion se encuentra " actividad "\n"
+                 "Tiene una cantidad de " (number->string (getFollow_C User)) " Follows\n\n"
+                 (string->listFollow (getListFollow_C User) "Los usuarios que te siguen son:\n") "\n"
+                 (string->listPost (getListPublicaciones_C User) "Los post que tiene son:\n" descrypt) "\n"
+                 (string->listPostComp (getListPublicacionesCompartidas_C User) "Los post compartidos que han hecho son:\n"
+                                       descrypt)))

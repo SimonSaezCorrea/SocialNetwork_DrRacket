@@ -7,29 +7,6 @@
 (provide (all-defined-out))
 
 #|
-(provide socialnetwork)
-
-(provide getCuenta_SN)
-(provide getEncryptFunction_SN)
-(provide getDecryptFunction_SN)
-(provide getDate_SN)
-(provide getName_SN)
-(provide getPublicaciones_SN)
-
-(provide Cuentas?)
-(provide socialnetwork?)
-
-(provide existeUsuario?)
-(provide addCuenta_SN)
-(provide contadorCuentas)
-(provide activar)
-(provide buscarCuentaActiva)
-(provide desactivar)
-(provide contadorPublicaciones)
-|#
-
-
-#|
 socialnetwork -> nombre | fecha | funcion de encriptacion | funcion de desencriptacion | lista de usuarios | lista de un par (lista de publicaciones y usuario)
                  string | day | funcion | funcion | list de account | list de cons
 
@@ -194,7 +171,29 @@ Rec: Sentencia booleana
           #f
           (existeUsuario?_encaps (cdr listUsuarios) nombre))
       #t))
-       
+
+#|
+Des: Permite saber si existe algun usuario activo
+Dom: La socialnetwork
+Rec: Sentencia booleana
+|#
+(define (existeUserActivo? SN)
+  (if (socialnetwork? SN)
+      (existeUserActivo?_encaps (getCuenta_SN SN))
+      #f))
+
+#|
+Des: Permite saber si existe algun usuario activo
+Dom: La lista de users
+Rec: Sentencia booleana
+|#
+(define (existeUserActivo?_encaps listUsers)
+  (if (not(null? listUsers))
+      (if (getActividad_C (car listUsers))
+          #t
+          (existeUserActivo?_encaps (cdr listUsers)))
+      #f))
+
 ;####################################################################################
 
 #|
@@ -306,31 +305,6 @@ Rec: La cuenta activada
           (buscarCuentaActiva_encaps (cdr listCuenta)))
       null))
 
-;#########################################################################################
-#|
-#|
-Des: Permite buscar una cuenta por usuario en una socialnetwork
-Dom: socialnetwork y un usuario (string)
-Rec: retorna una cuenta
-|#
-(define (buscarCuenta SN usuario)
-  (if (and (socialnetwork? SN)
-           (string? usuario))
-      ((buscarCuenta_encaps (getCuenta_SN SN) usuario))))
-
-#|
-Des: Permite buscar una cuenta por un usuario en una lista de usuario
-Dom: lista de usuario y un usuario (string)
-Rec: retorna una cuenta
-|#
-(define (buscarCuenta_encaps listaUsuario usuario)
-  (if (not (null? listaUsuario))
-      (if (eqv? (getNombre_C (car listaUsuario)) usuario)
-          (car listaUsuario)
-          (buscarCuenta_encaps (cdr listaUsuario) usuario))
-      null))
-|#
-
 ;###########################################################
 
 #|
@@ -344,3 +318,10 @@ Rec: El contador
           (contadorPublicaciones (cdr Publicaciones) (+ contador 1))
           contador)
       null))
+
+;###############################################################################################
+
+(define (string->Cuentas listCuentas descrypt string)
+  (if (not (null? listCuentas))
+      (string->Cuentas (cdr listCuentas) descrypt (string-append string "------------------------\n" (string->users (car listCuentas) descrypt "desactivada")))
+      string))

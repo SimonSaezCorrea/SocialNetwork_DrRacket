@@ -1,1 +1,1 @@
-("8.0" ta6nt ("e849f056bf94869b8d7b3d9e5721307e17891bf3" . "dba7ace0854e67f6b7761dc179ea7f574150676b") #"D:\\Git Hub\\lab1_20640480_Saez\\Codigo\\date.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
+("8.0" ta6nt ("9177a80461dbf2004dab0d23626632e51ac29e78" . "6ea000ccc246ec5e5eda8677834e5eb7db25f5b2") #"D:\\Git Hub\\lab1_20640480_Saez\\Codigo\\date.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
