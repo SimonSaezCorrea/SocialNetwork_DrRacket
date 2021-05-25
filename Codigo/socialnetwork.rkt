@@ -325,3 +325,9 @@ Rec: El contador
   (if (not (null? listCuentas))
       (string->Cuentas (cdr listCuentas) descrypt (string-append string "------------------------\n" (string->users (car listCuentas) descrypt "desactivada")))
       string))
+
+(define (string->Publicaciones listPublicaciones descrypt string)
+  (if (not(null? listPublicaciones))
+      (string->Publicaciones (cdr listPublicaciones) descrypt (string-append string "------------------------\n" (string->post (car (car listPublicaciones)) descrypt)
+                                                                             "Se encuentra en el usuario " (car(cdr(car listPublicaciones))) "\n"))
+      string))

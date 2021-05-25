@@ -118,27 +118,13 @@ Rec: sentencia booleana
               (if (boolean? (getActividad_C cuenta))
                   (if (integer? (getFollow_C cuenta))
                       (if (integer? (getID_C cuenta))
-                          (if (Publicaciones? (getListPublicaciones_C cuenta))
-                              #t
-                              #f)
+                          #t
                           #f)
                       #f)
                   #f)
               #f)
           #f)
       #f))
-
-#|
-Des: Permite saber si la lista de publicaciones contiene publicaciones
-Dom: Una lista
-Rec: Sentencia booleana
-|#
-(define (Publicaciones? Publicaciones)
-  (if (not(null? Publicaciones))
-      (if (post? (car Publicaciones))
-          (Publicaciones? (cdr Publicaciones))
-          #f)
-      #t))
 
 
 ;Modificadores
@@ -223,7 +209,7 @@ Rec: La lista de publicaciones modificada
 (define (addPublicacion_encaps Publicaciones publicacion)
   (if (not(null? Publicaciones))
       (cons (car Publicaciones) (addPublicacion_encaps (cdr Publicaciones) publicacion))
-      (cons publicacion null)))
+      (cons (list (getAutor_P publicacion) (getContenido_P publicacion)) null)))
 
 ;####################################################################
 
@@ -254,7 +240,7 @@ Rec: La lista de publicaciones modificada
 (define (addPublicacionCompartidas_encaps PublicacionesCompartidas publicacion name)
   (if (not(null? PublicacionesCompartidas))
       (cons (car PublicacionesCompartidas) (addPublicacionCompartidas_encaps (cdr PublicacionesCompartidas) publicacion name))
-      (cons (list publicacion name) null)))
+      (cons (list (list (getAutor_P publicacion) (getContenido_P publicacion)) name) null)))
 
 ;#####################################################################################################################
 
@@ -275,7 +261,9 @@ Rec: String
 |#
 (define (string->listPost listDePost string descrypt)
   (if (not (null? listDePost))
-      (string-append string (string->listPost (cdr listDePost) (string->post (car listDePost) descrypt) descrypt))
+      (string->listPost (cdr listDePost) (string-append string "-------------\n"
+                                                               "     Contenido: " (descrypt (car(cdr(car listDePost)))) "\n"
+                                                               "     Autor: " (car(car listDePost)) "\n") descrypt)
       string))
 
 #|
@@ -285,7 +273,12 @@ Rec: String
 |#
 (define (string->listPostComp listDePostComp string descrypt)
   (if (not(null? listDePostComp))
-      (string-append string "Compartida por el user: " (car(cdr(car listDePostComp))) "\n"(string->listPostComp (cdr listDePostComp) (string-append (string->post (car (car listDePostComp)) descrypt)) descrypt))
+      (string->listPostComp (cdr listDePostComp)
+                            (string-append string "-------------\n"
+                                                  "      Compartida por el user: " (car(cdr(car listDePostComp))) "\n"
+                                                  "      Contenido: " (descrypt (car(cdr(car (car listDePostComp))))) "\n"
+                                                  "      Autor: " (car(car(car listDePostComp))) "\n")
+                                                                                                                descrypt)
       string))
 
 #|
@@ -302,5 +295,5 @@ Rec: String
                  "Tiene una cantidad de " (number->string (getFollow_C User)) " Follows\n\n"
                  (string->listFollow (getListFollow_C User) "Los usuarios que te siguen son:\n") "\n"
                  (string->listPost (getListPublicaciones_C User) "Los post que tiene son:\n" descrypt) "\n"
-                 (string->listPostComp (getListPublicacionesCompartidas_C User) "Los post compartidos que han hecho son:\n"
+                 "Los post compartidos que han hecho son:\n" (string->listPostComp (getListPublicacionesCompartidas_C User) ""
                                        descrypt)))

@@ -29,8 +29,8 @@ Rec: La socialnetwork con la nueva cuenta
 
 #|
 Des: Permite hacer login a una cuenta y hacer una funcion
-Dom: La socialnetwork,  el nombre, la contraseña y la operacion | fecha | otro parametros
-Rec: La socialnetwork con la nueva cuenta
+Dom: La socialnetwork,  el nombre, la contraseña y la operacion
+Rec: La socialnetwork modificado segun operacion
 |#
 (define (login socialnetwork username password operation)
     (if (and (string? username)
@@ -45,13 +45,13 @@ Rec: La socialnetwork con la nueva cuenta
 
 #|
 Des: Permite hacer un post de una cuenta logeada
-Dom: El socialnetwork, la fecha y una lista con la publicacion y posibles usuarios de envio
+Dom: El socialnetwork, la fecha, el tipo de contenido, una publicacion y lista de usuarios de envio
 Rec: La socialnetwork con el post puesto
 |#
-(define (post socialnetwork) (lambda (date) (lambda (resp . users)
+(define (post socialnetwork) (lambda (date) (lambda (tipo resp . users)
   (if (null? users)
-      (postCuentaUsuario socialnetwork date resp)
-      (postCuentaOtroUsuarios socialnetwork date resp users)))))
+      (postCuentaUsuario socialnetwork date tipo resp)
+      (postCuentaOtroUsuarios socialnetwork date tipo resp users)))))
 
 ; °°°°°°°°°°°°°°°°°°°°°°°°
 ; PARA EL MISMO USUARIO
@@ -61,7 +61,7 @@ Des: Permite hacer un post a su propia cuenta
 Dom: La socialnetwork, la fecha y la publicacion
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaUsuario socialnetwork date publicacion)
+(define (postCuentaUsuario socialnetwork date tipo publicacion)
   (if (and (day? date)
            (string? publicacion)
            (socialnetwork? socialnetwork))
@@ -69,26 +69,26 @@ Rec: La socialnetwork con el post puesto
                         (getDate_SN socialnetwork)
                         (getEncryptFunction_SN socialnetwork)
                         (getDecryptFunction_SN socialnetwork)
-                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date publicacion
+                        (postCuentaUsuario_encaps (getCuenta_SN socialnetwork) date tipo publicacion
                                                   (getPublicaciones_SN socialnetwork)(getEncryptFunction_SN socialnetwork))
                         (postListPublic (getPublicaciones_SN socialnetwork) (getPublicaciones_SN socialnetwork)
-                                        date publicacion (getNombre_C (buscarCuentaActiva socialnetwork))
+                                        date tipo publicacion (getNombre_C (buscarCuentaActiva socialnetwork))
                                         (getEncryptFunction_SN socialnetwork))))
       ;(desactivar socialnetwork)))
       (list date publicacion)))
 
 #|
 Des: Permite hacer un post a su propia cuenta
-Dom: La lista de cuentas, la fecha y la publicacion
+Dom: La lista de cuentas, la fecha, la publicacion y el encrypt
 Rec: La lista de cuentas con el post puesto
 |#
-(define (postCuentaUsuario_encaps listCuenta date publicacion listPublic encrypt)
+(define (postCuentaUsuario_encaps listCuenta date tipo publicacion listPublic encrypt)
   (if(not(null? listCuenta))
      (if(eqv? (getActividad_C (car listCuenta)) #t)
-        (cons (addPublicacion (car listCuenta) (posting (getNombre_C (car listCuenta)) date "text" (encrypt publicacion)
-                                                    (contadorPublicaciones listPublic 1)))
-              (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic encrypt))
-        (cons (car listCuenta) (postCuentaUsuario_encaps (cdr listCuenta) date publicacion listPublic encrypt)))
+        (cons (addPublicacion (car listCuenta) (posting (getNombre_C (car listCuenta)) date tipo (encrypt publicacion)
+                                                    (contadorPublicaciones listPublic 1) (list) 0 0))
+              (postCuentaUsuario_encaps (cdr listCuenta) date tipo publicacion listPublic encrypt))
+        (cons (car listCuenta) (postCuentaUsuario_encaps (cdr listCuenta) date tipo publicacion listPublic encrypt)))
      null))
 
 
@@ -101,7 +101,7 @@ Des: Permite hacer un post a cuentas de otros usuarios
 Dom: La socialnetwork, la fecha, la publicacion y la lista de usuarios a la que va dirijido
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaOtroUsuarios socialnetwork date publicacion listUsuario)
+(define (postCuentaOtroUsuarios socialnetwork date tipo publicacion listUsuario)
   (if (and (day? date)
            (string? publicacion)
            (not (null? listUsuario))
@@ -110,41 +110,42 @@ Rec: La socialnetwork con el post puesto
                         (getDate_SN socialnetwork)
                         (getEncryptFunction_SN socialnetwork)
                         (getDecryptFunction_SN socialnetwork)
-                        (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date publicacion listUsuario
+                        (postCuentaOtroUsuarios_encaps (getCuenta_SN socialnetwork) date tipo publicacion listUsuario
                                                        (buscarCuentaActiva socialnetwork)
                                                        (getPublicaciones_SN socialnetwork)
                                                        (getEncryptFunction_SN socialnetwork))
-                        (postListPublic_otrosUsers (getPublicaciones_SN socialnetwork) (getPublicaciones_SN socialnetwork)
-                                                   date publicacion listUsuario
-                                                   (getNombre_C (buscarCuentaActiva socialnetwork))
-                                                   (getEncryptFunction_SN socialnetwork))))
+                        (postListPublic (getPublicaciones_SN socialnetwork) (getPublicaciones_SN socialnetwork)
+                                        date tipo publicacion (getNombre_C (buscarCuentaActiva socialnetwork))
+                                        (getEncryptFunction_SN socialnetwork))))
       (desactivar socialnetwork)))
 
 #|
 Des: Permite hacer un post a cuentas de otros usuarios
-Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido y la cuenta autora
+Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido, la cuenta autora,
+     listaDePost y encrypt
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaOtroUsuarios_encaps listCuentas date publicacion listUsuario cuentaAutora listPublic encrypt)
+(define (postCuentaOtroUsuarios_encaps listCuentas date tipo publicacion listUsuario cuentaAutora listPublic encrypt)
   (if (not (null? listUsuario))
-      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario
+      (postCuentaOtroUsuarios_encaps (postCuentaOtroUsuarios_encaps_2 listCuentas date tipo publicacion listUsuario
                                                                       cuentaAutora listPublic encrypt)
-                                     date publicacion (cdr listUsuario) cuentaAutora listPublic encrypt)
+                                     date tipo publicacion (cdr listUsuario) cuentaAutora listPublic encrypt)
       listCuentas))
 
 #|
 Des: Permite hacer un post a cuentas de otros usuarios
-Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido y la cuenta autora
+Dom: La lista de cuentas, la fecha, la publicacion, la lista de usuarios a la que va dirijido, la cuenta autora,
+     listaDePost y encrypt
 Rec: La socialnetwork con el post puesto
 |#
-(define (postCuentaOtroUsuarios_encaps_2 listCuentas date publicacion listUsuario cuentaAutora listPublic encrypt)
+(define (postCuentaOtroUsuarios_encaps_2 listCuentas date tipo publicacion listUsuario cuentaAutora listPublic encrypt)
   (if (not (null? listCuentas))
       (if (eqv? (car listUsuario) (getNombre_C (car listCuentas)))
           (cons (addPublicacion (car listCuentas) (posting (getNombre_C cuentaAutora) date "text" (encrypt publicacion)
-                                                           (contadorPublicaciones listPublic 1)))
-                (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario cuentaAutora listPublic
-                                                 encrypt))
-          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date publicacion listUsuario
+                                                           (contadorPublicaciones listPublic 1) (list) 0 0) )
+                (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date tipo publicacion listUsuario cuentaAutora
+                                                 listPublic encrypt))
+          (cons (car listCuentas) (postCuentaOtroUsuarios_encaps_2 (cdr listCuentas) date tipo publicacion listUsuario
                                                                    cuentaAutora listPublic encrypt)))
       null))
 
@@ -152,19 +153,20 @@ Rec: La socialnetwork con el post puesto
 ;SE AÑADE A LA LISTA DE PUBLICACIONES QUE ESTAN TODAS
 #|
 Des: Permite añadir la publicacion a la lista de publicaciones general
-Dom: La lista de publicacion, la fecha, la publicacion y el autor
+Dom: La lista de publicacion, la fecha, la publicacion, el autor y el encrypt
 Rec: La lista de publicaciones modificada
 |#
-(define (postListPublic listPublicaciones listPublicacionesTotal date publicacion autor encrypt)
+(define (postListPublic listPublicaciones listPublicacionesTotal date tipo publicacion autor encrypt)
   (if (not (null? listPublicaciones))
-      (cons (car listPublicaciones) (postListPublic (cdr listPublicaciones) date publicacion autor))
-      (cons (list (posting autor date "text" (encrypt publicacion) (contadorPublicaciones listPublicacionesTotal 1))
+      (cons (car listPublicaciones) (postListPublic (cdr listPublicaciones) listPublicacionesTotal date tipo publicacion
+                                                    autor encrypt))
+      (cons (list (posting autor date tipo (encrypt publicacion) (contadorPublicaciones listPublicacionesTotal 1) (list) 0 0)
                   autor)
             null)))
 
 #|
 Des: Permite añadir la publicacion a la lista de publicaciones general
-Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
+Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios, el autor y el encrypt
 Rec: La lista de publicaciones modificada
 |#
 (define (postListPublic_otrosUsers listPublicaciones listPublicacionesTotal date publicacion listUser autor encrypt)
@@ -178,7 +180,7 @@ Rec: La lista de publicaciones modificada
 
 #|
 Des: Permite añadir la publicacion a la lista de publicaciones general
-Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios y el autor
+Dom: Lista de publicaciones, fecha, publicacion, lista de usuarios, el autor y el encrypt
 Rec: La lista de publicaciones modificada
 |#
 (define (postListPublic_otrosUsers_encaps listPublicaciones listPublicacionesTotal date publicacion listUser autor encrypt)
@@ -199,16 +201,18 @@ Dom: la socialnetwork, la fecha y un usuario (string)
 Rec: La socialnetwork modificada
 |#
 (define (follow socialnetwork) (lambda (date) (lambda (usuario)
-  (if (and (day? date)
-           (string? usuario))
-      (if (not (existeUsuario? socialnetwork usuario))
-          (desactivar (list (getName_SN socialnetwork)
-                            (getDate_SN socialnetwork)
-                            (getEncryptFunction_SN socialnetwork)
-                            (getDecryptFunction_SN socialnetwork)
-                            (follow_encaps (getCuenta_SN socialnetwork) date usuario (buscarCuentaActiva socialnetwork))
-                            (getPublicaciones_SN socialnetwork)))
-          socialnetwork)
+  (if (existeUserActivo? socialnetwork)
+      (if (and (day? date)
+               (string? usuario))
+          (if (not (existeUsuario? socialnetwork usuario))
+              (desactivar (list (getName_SN socialnetwork)
+                                (getDate_SN socialnetwork)
+                                (getEncryptFunction_SN socialnetwork)
+                                (getDecryptFunction_SN socialnetwork)
+                                (follow_encaps (getCuenta_SN socialnetwork) date usuario (buscarCuentaActiva socialnetwork))
+                                (getPublicaciones_SN socialnetwork)))
+              (desactivar socialnetwork))
+          (desactivar socialnetwork))
       socialnetwork))))
 
 #|
@@ -229,13 +233,17 @@ Rec: La lista de usuarios modificada
 
 #|
 Des: Permite compartir una publicacion segun ID a si mismo o alguien
-Dom: El socialnetwork, la fecha y el ID
+Dom: El socialnetwork, la fecha, el ID y la lista de users||
 Rec: La socialnetwork modificada
 |#
 (define (share socialnetwork) (lambda (date) (lambda (ID . users)
-  (if (null? users)
-      (shareMiCuenta socialnetwork date ID)
-      (shareOtraCuenta socialnetwork date ID users)))))
+  (if (existeUserActivo? socialnetwork)
+      (if (existeUserActivo? socialnetwork)
+          (if (null? users)
+              (shareMiCuenta socialnetwork date ID)
+              (shareOtraCuenta socialnetwork date ID users))
+          (desactivar socialnetwork))
+      socialnetwork))))
 
 #|
 Des: Permite compartir una publicacion segun ID a si mismo
@@ -319,20 +327,61 @@ Rec: La lista de usuarios modificada
 
 ;##########################################################################################################################
 
+#|
+Des: Permite pasar a string el contenido de un usuario o de todo el socialnetwork
+Dom: Socialnetwork
+Rec: String
+|#
 (define (socialnetwork->string socialnetwork)
   (if (existeUserActivo? socialnetwork)
       (social->string_login (buscarCuentaActiva socialnetwork) (getDecryptFunction_SN socialnetwork))
       (social->string_total socialnetwork (getDecryptFunction_SN socialnetwork))))
 
+#|
+Des: Permite pasar a string el contenido de un usuario
+Dom: Usuario y descriptacion
+Rec: String
+|#
 (define (social->string_login User descrypt)
   (string->users User descrypt "activada"))
 
+#|
+Des: Permite pasar a string el contenido de todo el socialnetwork
+Dom: Socialnetwork y descriptacion
+Rec: String
+|#
 (define (social->string_total socialnetwork descrypt)
   (string-append "El nombre de la socialnetowrk es " (getName_SN socialnetwork) "\n"
                  "Las cuentas que tiene son:\n"
-                 (string->Cuentas (getCuenta_SN socialnetwork) descrypt "")))
+                 (string->Cuentas (getCuenta_SN socialnetwork) descrypt "")
+                 "\n°°°°°°°°°°°°°°°°°°°°°°°°°°°°°\n"
+                 "Las publicaciones son:\n"
+                 (string->Publicaciones (getPublicaciones_SN socialnetwork) descrypt "")))
 
-;####################
+;###########################################################################################################################
+
+(define (comment socialnetwork) (lambda (date) (lambda (ID) (lambda (respuesta)
+  (if(and(day? date)
+         (integer? ID)
+         (string? respuesta))
+     (desactivar (list(getName_SN socialnetwork)
+                      (getDate_SN socialnetwork)
+                      (getEncryptFunction_SN socialnetwork)
+                      (getDecryptFunction_SN socialnetwork)
+                      (getCuenta_SN socialnetwork)
+                      (comment_encaps (getPublicaciones_SN socialnetwork) date ID
+                                      (list ((getEncryptFunction_SN socialnetwork)respuesta) 0 date))))
+     socialnetwork)))))
+
+(define (comment_encaps listPub date ID resp)
+  (if (not(null? listPub))
+      (if (eq? (getID_P (car (car listPub))) ID)
+          (cons (list (addComentario (car (car listPub)) date resp) (car (cdr (car listPub))))
+                (comment_encaps (cdr listPub) date ID resp))
+          (cons (car listPub) (comment_encaps (cdr listPub) date ID resp)))
+      null))
+
+;###########################################################################################################################
 
 ;EJEMPLOS
 
@@ -340,27 +389,40 @@ Rec: La lista de usuarios modificada
 
 (define emptyFB (socialnetwork "fb" (day 25 10 2021) encryptFn encryptFn))
 
-(define FB (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
-(day 25 10 2021) "user2" "pass2") (day 25 10 2021) "user3" "pass3"))
+(define FB (register (register (register (register (register emptyFB (day 25 10 2021) "user1" "pass1")
+                                                   (day 25 10 2021) "user2" "pass2")
+                                         (day 25 10 2021) "user3" "pass3")
+                               (day 25 10 2021) "user4" "pass4")
+                     (day 25 10 2021) "user5" "pass5"))
 
 
-(define FB1 (((login FB "user1" "pass1" post) (day 28 10 2021)) "0st post"))
+(define FB1 (((login FB "user1" "pass1" post) (day 28 10 2021)) "text" "0st post"))
 
-(define FB2 (((login FB1 "user3" "pass3" post) (day 28 10 2021)) "1th post" "user1"))
+(define FB2 (((login FB1 "user2" "pass2" post) (day 28 10 2021)) "text" "1th post" "user1"))
 
-(define FB3 (((login FB2 "user1" "pass1" post) (day 28 10 2021)) "2th post" "user2" "user3"))
+(define FB3 (((login FB2 "user3" "pass3" post) (day 28 10 2021)) "text" "2th post" "user2" "user3"))
 
+(define FB4 (((login FB3 "user4" "pass4" post) (day 29 10 2021)) "photo" "meme.png"))
 
-(define FB4  (((login FB3 "user1" "pass1" follow) (day 27 10 2021)) "user2"))
+(define FB5 (((login FB4 "user5" "pass5" post) (day 29 10 2021)) "video" "vidaFantastica.mp4" "user2" "user5"))
 
-(define FB5 (((login FB4 "user1" "pass1" follow) (day 27 10 2021)) "user3"))
+(define FB6 (((login FB5 "user1" "pass1" follow) (day 29 10 2021)) "user2"))
 
-(define FB6 (((login FB5 "user2" "pass2" follow) (day 27 10 2021)) "user3"))
+(define FB7 (((login FB6 "user2" "pass2" follow) (day 29 10 2021)) "user3"))
 
-(define FB7 (((login FB6 "user2" "pass2" follow) (day 27 10 2021)) "user1"))
+(define FB8 (((login FB7 "user3" "pass3" follow) (day 30 10 2021)) "user3"))
 
-(define FB8 (((login FB7 "user1" "pass1" share) (day 28 10 2021)) 2))
+(define FB9 (((login FB8 "user4" "pass4" follow) (day 30 10 2021)) "user1"))
 
-(define FB9 (((login FB8 "user1" "pass1" share) (day 28 10 2021)) 2 "user2" "user3"))
+(define FB10 (((login FB9 "user5" "pass5" follow) (day 1 11 2021)) "user5"))
 
-(define FB10 (((login FB9 "user3" "pass3" share) (day 28 10 2021)) 4 "user2" "user1"))
+(define FB11 (((login FB10 "user1" "pass1" share) (day 28 10 2021)) 2))
+
+(define FB12 (((login FB11 "user1" "pass1" share) (day 28 10 2021)) 2 "user2" "user3"))
+
+(define FB13 (((login FB12 "user3" "pass3" share) (day 28 10 2021)) 3 "user2" "user1" "user4"))
+
+(define S1 (login FB13 "user1" "pass1" socialnetwork->string))
+(define S2 (login FB13 "user2" "pass2" socialnetwork->string))
+(define S3 (login FB13 "user3" "pass3" socialnetwork->string))
+(define S4 (socialnetwork->string FB13))
