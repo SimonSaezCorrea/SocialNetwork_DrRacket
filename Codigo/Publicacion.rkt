@@ -14,7 +14,7 @@ Publicacion -> Autor | fecha publicacion | Tipo de publicacion | Contenido de la
 
 #|
 Des: Permite la creacion de un constructor de tipo posting
-Dom: autor (String), fecha (day), tipo (String), contenido (String), compartir (Integer), ID (Integer), comentarios (list list strings | integer), likesP (integer)
+Dom: autor (String), fecha (day), tipo (String), contenido (String), compartir (Integer), ID (Integer), comentarios (list strings), likesP (integer)
 Rec: Una lista con los datos
 |#
 (define (posting autor fecha tipo contenido ID comentarios likesP cantComp)
@@ -132,24 +132,22 @@ Rec: String
 
 (define (string->Comentario listComentario descrypt string i)
   (if(not(null? listComentario))
-     (string->Comentario (cdr listComentario) descrypt (string-append string  (number->string i) ") " (descrypt (car (car listComentario))) "\n"
-                                                                      "       likes: " (number->string(car (cdr (car listComentario)))) "\n"
-                                                                      "       " (string->fecha (car(cdr(cdr (car listComentario)))))) (+ i 1))
+     (string->Comentario (cdr listComentario) descrypt (string-append string  "           "(number->string i) ") " (descrypt (car listComentario)) "\n") (+ i 1))
      string))
 
 
 
-(define (addComentario post date comment)
+(define (addComentario post comment)
   (list (getAutor_P post)
         (getFecha_P post)
         (getTipo_P post)
         (getContenido_P post)
         (getID_P post)
-        (addComentario_encaps (getComentario_P post) date comment)
+        (addComentario_encaps (getComentario_P post) comment)
         (getLikesP_P post)
         (+ (getCantComp_P post) 1)))
 
-(define (addComentario_encaps  listComent date commet)
+(define (addComentario_encaps  listComent commet)
   (if (not(null? listComent))
-      (cons (car listComent) (addComentario_encaps (cdr listComent) date commet))
+      (cons (car listComent) (addComentario_encaps (cdr listComent) commet))
       (cons commet null)))

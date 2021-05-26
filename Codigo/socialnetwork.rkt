@@ -7,8 +7,8 @@
 (provide (all-defined-out))
 
 #|
-socialnetwork -> nombre | fecha | funcion de encriptacion | funcion de desencriptacion | lista de usuarios | lista de un par (lista de publicaciones y usuario)
-                 string | day | funcion | funcion | list de account | list de cons
+socialnetwork -> nombre | fecha | funcion de encriptacion | funcion de desencriptacion | lista de usuarios | lista de un par (lista de publicaciones y usuario) | lista de (list comentarios | ID pregunta) 
+                 string | day | funcion | funcion | list de account | list de list (post, user) | list de list (comment, ID_P)
 
 |#
 
@@ -23,7 +23,7 @@ Rec: Una lista con los datos y se le agrega una lista vacia para los usuarios
 (define (socialnetwork name date encryptFunction decryptFunction)
   (if (and (string? name)
            (day? date))
-      (list name date encryptFunction decryptFunction (list) (list))
+      (list name date encryptFunction decryptFunction (list) (list) (list))
       null))
 
 ;Selectores
@@ -76,6 +76,14 @@ Rec: El cuenta
 (define (getPublicaciones_SN SN)
   (car (cdr (cdr (cdr (cdr (cdr SN)))))))
 
+#|
+Des: Permite recoger el cuenta
+Dom: El dato socialnetwork
+Rec: El cuenta
+|#
+(define (getComentarios_SN SN)
+  (car (cdr (cdr (cdr (cdr (cdr (cdr SN))))))))
+
 ;Pertenencia
 
 #|
@@ -117,7 +125,8 @@ Rec: la socialnetwork modificada
                     (getEncryptFunction_SN SN)
                     (getDecryptFunction_SN SN)
                     (addCuenta (getCuenta_SN SN) cuenta)
-                    (getPublicaciones_SN SN))
+                    (getPublicaciones_SN SN)
+                    (getComentarios_SN SN))
      SN))
 
 #|
@@ -211,7 +220,8 @@ Rec: La socialnetwork con la cuenta activada
                 (getEncryptFunction_SN SN)
                 (getDecryptFunction_SN SN)
                 (buscarCuenta_activar (getCuenta_SN SN) cuenta password)
-                (getPublicaciones_SN SN))
+                (getPublicaciones_SN SN)
+                (getComentarios_SN SN))
           SN)
       SN))
 
@@ -255,7 +265,8 @@ Rec: La socialnetwork con la cuenta desactivada
                 (getEncryptFunction_SN SN)
                 (getDecryptFunction_SN SN)
                 (buscarCuenta_desactivar (getCuenta_SN SN))
-                (getPublicaciones_SN SN))
+                (getPublicaciones_SN SN)
+                (getComentarios_SN SN))
           SN)
       SN))
 
@@ -319,6 +330,18 @@ Rec: El contador
           contador)
       null))
 
+#|
+Des: Permite sacar el contador respecto a la lista de comentarios
+Dom: Lista de publicaciones y un contador (Integer)
+Rec: El contador
+|#
+(define (contadorComentarios Comentarios contador)
+  (if (integer? contador)
+      (if (not (null? Comentarios))
+          (contadorComentarios (cdr Comentarios) (- contador 1))
+          contador)
+      null))
+
 ;###############################################################################################
 
 (define (string->Cuentas listCuentas descrypt string)
@@ -329,5 +352,10 @@ Rec: El contador
 (define (string->Publicaciones listPublicaciones descrypt string)
   (if (not(null? listPublicaciones))
       (string->Publicaciones (cdr listPublicaciones) descrypt (string-append string "------------------------\n" (string->post (car (car listPublicaciones)) descrypt)
-                                                                             "Se encuentra en el usuario " (car(cdr(car listPublicaciones))) "\n"))
+                                                                             "Se encuentra en el usuario " (string->user (car(cdr(car listPublicaciones))) "") "\n"))
+      string))
+
+(define (string->user listUser string)
+  (if (not(null? listUser))
+      (string->user (cdr listUser) (string-append (car listUser)))
       string))

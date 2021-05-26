@@ -156,7 +156,7 @@ Des: Permite añadir un nombre a la lista de followers de la cuenta
 Dom: La cuenta que se le agregara y el nombre a agregar
 Rec: La cuenta modificada
 |#
-(define (addListFollow cuenta nombre)
+(define (addListFollow cuenta nombre date)
   (if (and (account? cuenta)
            (string? nombre))
       (account (getNombre_C cuenta)
@@ -164,7 +164,7 @@ Rec: La cuenta modificada
                (getFecha_C cuenta)
                (getActividad_C cuenta)
                (+(getFollow_C cuenta) 1)
-               (addListFollow_encaps (getListFollow_C cuenta) nombre)
+               (addListFollow_encaps (getListFollow_C cuenta) nombre date)
                (getID_C cuenta)
                (getListPublicaciones_C cuenta)
                (getListPublicacionesCompartidas_C cuenta))
@@ -175,10 +175,10 @@ Des: Permite añadir el nombre a la lista
 Dom: lista de followers, el nombre a agregar
 Rec: La lista de followers modificada
 |#
-(define (addListFollow_encaps listCuenta nombre)
+(define (addListFollow_encaps listCuenta nombre date)
   (if (not(null? listCuenta))
-      (cons (car listCuenta) (addListFollow_encaps (cdr listCuenta) nombre))
-      (cons nombre null)))
+      (cons (car listCuenta) (addListFollow_encaps (cdr listCuenta) nombre date))
+      (cons (list nombre date) null)))
 
 ;###########################################################
 
@@ -218,7 +218,7 @@ Des: Permite añadir una publicacion a la lista de publicaciones compartidas de 
 Dom: La cuenta que se le agregara y la publicacion a agregar
 Rec: Una nueva cuenta modificada
 |#
-(define (addPublicacionCompartidas cuenta publicacion name)
+(define (addPublicacionCompartidas cuenta publicacion name date)
   (if(and(account? cuenta)
          (post? publicacion))
      (account (getNombre_C cuenta)
@@ -229,7 +229,7 @@ Rec: Una nueva cuenta modificada
               (getListFollow_C cuenta)
               (getID_C cuenta)
               (getListPublicaciones_C cuenta)
-              (addPublicacionCompartidas_encaps (getListPublicacionesCompartidas_C cuenta) publicacion name))
+              (addPublicacionCompartidas_encaps (getListPublicacionesCompartidas_C cuenta) publicacion name date))
      cuenta))
 
 #|
@@ -237,10 +237,10 @@ Des: Permite añadir una publicacion a la lista de publicaciones compartidas
 Dom: La lista de publicaciones y la publicacion
 Rec: La lista de publicaciones modificada
 |#
-(define (addPublicacionCompartidas_encaps PublicacionesCompartidas publicacion name)
+(define (addPublicacionCompartidas_encaps PublicacionesCompartidas publicacion name date)
   (if (not(null? PublicacionesCompartidas))
-      (cons (car PublicacionesCompartidas) (addPublicacionCompartidas_encaps (cdr PublicacionesCompartidas) publicacion name))
-      (cons (list (list (getAutor_P publicacion) (getContenido_P publicacion)) name) null)))
+      (cons (car PublicacionesCompartidas) (addPublicacionCompartidas_encaps (cdr PublicacionesCompartidas) publicacion name date))
+      (cons (list (list (getAutor_P publicacion) (getContenido_P publicacion)) name date) null)))
 
 ;#####################################################################################################################
 
@@ -251,7 +251,7 @@ Rec: String
 |#
 (define (string->listFollow listFollow string)
   (if (not (null? listFollow))
-      (string->listFollow (cdr listFollow) (string-append string "     - " (car listFollow) "\n"))
+      (string->listFollow (cdr listFollow) (string-append string "     - " (car (car listFollow)) "\n"))
       string))
 
 #|
@@ -276,7 +276,7 @@ Rec: String
       (string->listPostComp (cdr listDePostComp)
                             (string-append string "-------------\n"
                                                   "      Compartida por el user: " (car(cdr(car listDePostComp))) "\n"
-                                                  "      Contenido: " (descrypt (car(cdr(car (car listDePostComp))))) "\n"
+                                                  "      Contenido: " (descrypt (car(cdr(car(car listDePostComp))))) "\n"
                                                   "      Autor: " (car(car(car listDePostComp))) "\n")
                                                                                                                 descrypt)
       string))

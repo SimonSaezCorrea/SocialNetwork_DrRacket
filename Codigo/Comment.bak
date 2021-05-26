@@ -1,0 +1,4 @@
+#lang racket
+
+(define (comentario ID autor comment date)
+  (list ID autor comment date))
