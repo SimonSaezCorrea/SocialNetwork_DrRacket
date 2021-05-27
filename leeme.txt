@@ -1,0 +1,10 @@
+Para la función like tiene como parametro un ID. 
+Ese ID en especifico tiene 2 representaciones:
+	- Publicacion
+	- Comentario
+Para lograr diferenciar una de otra corresponde al numero del ID
+	- Para publicacion será un ID positivo
+	- Para comentario será un ID negativo
+	- No existe un ID igual a cero
+
+Porfavor tener en cuenta ese detalle

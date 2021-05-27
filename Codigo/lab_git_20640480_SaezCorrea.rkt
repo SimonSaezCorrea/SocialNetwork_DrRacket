@@ -426,6 +426,8 @@ Rec: String
 
 ;EJEMPLOS
 
+#|
+
 (define encryptFn (lambda (s) (list->string (reverse (string->list s)))))
 
 (define emptyFB (socialnetwork "fb" (day 25 10 2021) encryptFn encryptFn))
@@ -481,3 +483,5 @@ Rec: String
 (define S2 (login FB20 "user2" "pass2" socialnetwork->string))
 (define S3 (login FB20 "user3" "pass3" socialnetwork->string))
 (define S4 (socialnetwork->string FB20))
+
+|#
